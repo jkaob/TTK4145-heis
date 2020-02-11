@@ -3942,7 +3942,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLlzLVvXAhzs="
 							},
-							"name": "local_queue"
+							"name": "local_queue",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -3950,7 +3951,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLlzLVvXAhzs="
 							},
-							"name": "int[n][m] local_queue"
+							"name": "int[n][m] local_queue",
+							"type": ""
 						}
 					],
 					"operations": [
@@ -4046,7 +4048,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLn6UB/gX8+M="
 							},
-							"name": "int ID"
+							"name": "int ID",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4054,7 +4057,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLn6UB/gX8+M="
 							},
-							"name": "int State"
+							"name": "int State",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4062,7 +4066,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLn6UB/gX8+M="
 							},
-							"name": "int Floor"
+							"name": "int Floor",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4070,7 +4075,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLn6UB/gX8+M="
 							},
-							"name": "int Direction"
+							"name": "int Direction",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4078,7 +4084,8 @@
 							"_parent": {
 								"$ref": "AAAAAAFwLn6UB/gX8+M="
 							},
-							"name": "int Network_status"
+							"name": "int Network_status",
+							"type": ""
 						}
 					]
 				},
@@ -4138,7 +4145,7 @@
 									"left": 234,
 									"top": 114,
 									"width": 101,
-									"height": 26,
+									"height": 13,
 									"text": "Cab button pressed",
 									"wordWrap": true
 								}
@@ -4284,9 +4291,9 @@
 										"$ref": "AAAAAAFwLsR9afvCC/U="
 									},
 									"font": "Arial;13;0",
-									"left": 320,
+									"left": 319,
 									"top": 215,
-									"width": 41.6787109375,
+									"width": 43.0751953125,
 									"height": 13,
 									"alpha": -3.6052404625906793,
 									"distance": 22.360679774997898,
@@ -4330,7 +4337,7 @@
 									"left": 218,
 									"top": 338,
 									"width": 117,
-									"height": 39,
+									"height": 26,
 									"text": "Add order to Request Topic as cab order",
 									"wordWrap": true
 								}
@@ -5457,9 +5464,9 @@
 										"$ref": "AAAAAAFwL5WIAAeQuf4="
 									},
 									"font": "Arial;13;0",
-									"left": 200,
+									"left": 199,
 									"top": 416,
-									"width": 41.6787109375,
+									"width": 43.0751953125,
 									"height": 13,
 									"alpha": -1.6064955772130787,
 									"distance": 28.0178514522438,
