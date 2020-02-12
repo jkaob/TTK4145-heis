@@ -349,7 +349,7 @@
 													"left": 250,
 													"top": 690,
 													"width": 68.63720703125,
-													"height": 26,
+													"height": 13,
 													"text": "Run as usual",
 													"wordWrap": true
 												}
@@ -2243,7 +2243,7 @@
 									},
 									"font": "Arial;13;0",
 									"left": 240.25,
-									"top": 369.5,
+									"top": 441.5,
 									"width": 48.5,
 									"height": 35,
 									"wordWrap": true
@@ -2251,7 +2251,7 @@
 							],
 							"font": "Arial;13;0",
 							"left": 216,
-							"top": 352,
+							"top": 424,
 							"width": 97,
 							"height": 70,
 							"nameLabel": {
@@ -2280,7 +2280,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"left": 278,
-									"top": 294,
+									"top": 330,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -2298,7 +2298,7 @@
 								"$ref": "AAAAAAFwL+mCfWDKqV8="
 							},
 							"lineStyle": 2,
-							"points": "264:250;264:352",
+							"points": "264:250;264:424",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL+sc2WD5VFw="
 							}
@@ -2321,7 +2321,7 @@
 									},
 									"font": "Arial;13;0",
 									"left": 226,
-									"top": 514,
+									"top": 562,
 									"width": 76.60986328125,
 									"height": 52,
 									"text": "Save cab orders from disconnected elevator",
@@ -2330,7 +2330,7 @@
 							],
 							"font": "Arial;13;0",
 							"left": 216,
-							"top": 504,
+							"top": 552,
 							"width": 96.60986328125,
 							"height": 98,
 							"nameLabel": {
@@ -2357,12 +2357,12 @@
 										"$ref": "AAAAAAFwL+z7N2Ez8dk="
 									},
 									"font": "Arial;13;0",
-									"left": 283,
-									"top": 448,
+									"left": 279,
+									"top": 516,
 									"width": 267.36328125,
 									"height": 13,
-									"alpha": 1.6244358564333905,
-									"distance": 149.21461054467824,
+									"alpha": 1.5707960886996586,
+									"distance": 146,
 									"hostEdge": {
 										"$ref": "AAAAAAFwL+z7N2E1UE0="
 									},
@@ -2378,7 +2378,7 @@
 								"$ref": "AAAAAAFwL+rPWmDumd4="
 							},
 							"lineStyle": 2,
-							"points": "267:421;267:504",
+							"points": "267:493;267:552",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL+z7N2E2ib4="
 							}
@@ -2401,7 +2401,7 @@
 									},
 									"font": "Arial;13;0",
 									"left": 226,
-									"top": 674,
+									"top": 722,
 									"width": 76.60986328125,
 									"height": 65,
 									"text": "Reassign hall orders from disconnected elevator",
@@ -2410,7 +2410,7 @@
 							],
 							"font": "Arial;13;0",
 							"left": 216,
-							"top": 664,
+							"top": 712,
 							"width": 96.60986328125,
 							"height": 98,
 							"nameLabel": {
@@ -2439,7 +2439,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"left": 277,
-									"top": 625,
+									"top": 673,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -2457,7 +2457,7 @@
 								"$ref": "AAAAAAFwL+yTXGEr2ec="
 							},
 							"lineStyle": 2,
-							"points": "263:601;263:664",
+							"points": "263:649;263:712",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL/G47GFRFyE="
 							}
@@ -2484,7 +2484,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"left": 49,
-									"top": 461,
+									"top": 467,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -2502,7 +2502,7 @@
 								"$ref": "AAAAAAFwL+4TCmFB+80="
 							},
 							"lineStyle": 2,
-							"points": "216:712;64:712;64:224;216:224",
+							"points": "216:736;64:736;64:213;216:213",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL/JGlGFavPA="
 							}
@@ -2524,8 +2524,8 @@
 										"$ref": "AAAAAAFwL/MYwmFpRBU="
 									},
 									"font": "Arial;13;0",
-									"left": 650,
-									"top": 354,
+									"left": 722,
+									"top": 426,
 									"width": 162.60791015625,
 									"height": 26,
 									"text": "Publish latest cab orders of corresponding elevator",
@@ -2533,58 +2533,12 @@
 								}
 							],
 							"font": "Arial;13;0",
-							"left": 640,
-							"top": 344,
+							"left": 712,
+							"top": 416,
 							"width": 182.60791015625,
-							"height": 98,
+							"height": 73,
 							"nameLabel": {
 								"$ref": "AAAAAAFwL/MYwmFqfvI="
-							}
-						},
-						{
-							"_type": "FCFlowView",
-							"_id": "AAAAAAFwL/O8bWFzP2o=",
-							"_parent": {
-								"$ref": "AAAAAAFwL+TE+2CjQks="
-							},
-							"model": {
-								"$ref": "AAAAAAFwL/O8bWFx1KI="
-							},
-							"subViews": [
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAFwL/O8bWF04fw=",
-									"_parent": {
-										"$ref": "AAAAAAFwL/O8bWFzP2o="
-									},
-									"model": {
-										"$ref": "AAAAAAFwL/O8bWFx1KI="
-									},
-									"font": "Arial;13;0",
-									"left": 357,
-									"top": 369,
-									"width": 239.1669921875,
-									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 15,
-									"hostEdge": {
-										"$ref": "AAAAAAFwL/O8bWFzP2o="
-									},
-									"edgePosition": 1,
-									"text": "[New elevator requests its old cab orders]"
-								}
-							],
-							"font": "Arial;13;0",
-							"head": {
-								"$ref": "AAAAAAFwL/MYwmFpRBU="
-							},
-							"tail": {
-								"$ref": "AAAAAAFwL+rPWmDumd4="
-							},
-							"lineStyle": 2,
-							"points": "312:390;640:390",
-							"nameLabel": {
-								"$ref": "AAAAAAFwL/O8bWF04fw="
 							}
 						},
 						{
@@ -2604,7 +2558,7 @@
 										"$ref": "AAAAAAFwL/qYwWGPZYw="
 									},
 									"font": "Arial;13;0",
-									"left": 498,
+									"left": 450,
 									"top": 194,
 									"width": 125,
 									"height": 26,
@@ -2613,7 +2567,7 @@
 								}
 							],
 							"font": "Arial;13;0",
-							"left": 488,
+							"left": 440,
 							"top": 184,
 							"width": 145,
 							"height": 57,
@@ -2642,7 +2596,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 767,
+									"left": 799,
 									"top": 217,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -2661,7 +2615,7 @@
 								"$ref": "AAAAAAFwL/MYwmFpRBU="
 							},
 							"lineStyle": 2,
-							"points": "768:344;768:208;632:208",
+							"points": "800:416;800:208;584:208",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL/tQ62GkpQg="
 							}
@@ -2687,7 +2641,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 399,
+									"left": 375,
 									"top": 228,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -2706,9 +2660,258 @@
 								"$ref": "AAAAAAFwL/qYwWGPZYw="
 							},
 							"lineStyle": 2,
-							"points": "488:219;312:219",
+							"points": "440:219;312:219",
 							"nameLabel": {
 								"$ref": "AAAAAAFwL/uHkWGvTtg="
+							}
+						},
+						{
+							"_type": "FCDecisionView",
+							"_id": "AAAAAAFwNho436tLRQM=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNho436tJqbw="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAFwNho436tMM30=",
+									"_parent": {
+										"$ref": "AAAAAAFwNho436tLRQM="
+									},
+									"font": "Arial;13;0",
+									"left": 504.25,
+									"top": 443.5,
+									"width": 32.5,
+									"height": 23,
+									"wordWrap": true
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 488,
+							"top": 432,
+							"width": 65,
+							"height": 46,
+							"nameLabel": {
+								"$ref": "AAAAAAFwNho436tMM30="
+							}
+						},
+						{
+							"_type": "FCFlowView",
+							"_id": "AAAAAAFwNhppEqtVVEw=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNhppEqtTDzE="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAFwNhppEqtWbVo=",
+									"_parent": {
+										"$ref": "AAAAAAFwNhppEqtVVEw="
+									},
+									"model": {
+										"$ref": "AAAAAAFwNhppEqtTDzE="
+									},
+									"font": "Arial;13;0",
+									"left": 326,
+									"top": 435,
+									"width": 148.13525390625,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAFwNhppEqtVVEw="
+									},
+									"edgePosition": 1,
+									"text": "[new elevator on network]"
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAFwNho436tLRQM="
+							},
+							"tail": {
+								"$ref": "AAAAAAFwL+rPWmDumd4="
+							},
+							"lineStyle": 2,
+							"points": "312:456;488:456",
+							"nameLabel": {
+								"$ref": "AAAAAAFwNhppEqtWbVo="
+							}
+						},
+						{
+							"_type": "FCFlowView",
+							"_id": "AAAAAAFwNhqlP6tf4fw=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNhqlP6tdsOo="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAFwNhqlP6tgvYY=",
+									"_parent": {
+										"$ref": "AAAAAAFwNhqlP6tf4fw="
+									},
+									"model": {
+										"$ref": "AAAAAAFwNhqlP6tdsOo="
+									},
+									"font": "Arial;13;0",
+									"left": 561,
+									"top": 432,
+									"width": 143.076171875,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAFwNhqlP6tf4fw="
+									},
+									"edgePosition": 1,
+									"text": "[requests old cab orders]"
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAFwL/MYwmFpRBU="
+							},
+							"tail": {
+								"$ref": "AAAAAAFwNho436tLRQM="
+							},
+							"lineStyle": 2,
+							"points": "552:453;712:453",
+							"nameLabel": {
+								"$ref": "AAAAAAFwNhqlP6tgvYY="
+							}
+						},
+						{
+							"_type": "FCProcessView",
+							"_id": "AAAAAAFwNhxdGauC9CI=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNhxdGKuAsi4="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAFwNhxdGquD+/Y=",
+									"_parent": {
+										"$ref": "AAAAAAFwNhxdGauC9CI="
+									},
+									"font": "Arial;13;0",
+									"left": 474,
+									"top": 290,
+									"width": 85,
+									"height": 26,
+									"text": "Syncronize queue",
+									"wordWrap": true
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 464,
+							"top": 280,
+							"width": 105,
+							"height": 46,
+							"nameLabel": {
+								"$ref": "AAAAAAFwNhxdGquD+/Y="
+							}
+						},
+						{
+							"_type": "FCFlowView",
+							"_id": "AAAAAAFwNh8yyauTLwU=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNh8yyauRfC4="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAFwNh8yyquUQz4=",
+									"_parent": {
+										"$ref": "AAAAAAFwNh8yyauTLwU="
+									},
+									"model": {
+										"$ref": "AAAAAAFwNh8yyauRfC4="
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"left": 502,
+									"top": 371,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAFwNh8yyauTLwU="
+									},
+									"edgePosition": 1
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAFwNhxdGauC9CI="
+							},
+							"tail": {
+								"$ref": "AAAAAAFwNho436tLRQM="
+							},
+							"lineStyle": 2,
+							"points": "517:432;517:325",
+							"nameLabel": {
+								"$ref": "AAAAAAFwNh8yyquUQz4="
+							}
+						},
+						{
+							"_type": "FCFlowView",
+							"_id": "AAAAAAFwNiASuauhjG8=",
+							"_parent": {
+								"$ref": "AAAAAAFwL+TE+2CjQks="
+							},
+							"model": {
+								"$ref": "AAAAAAFwNiASuaufnoo="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAFwNiASuaui4b8=",
+									"_parent": {
+										"$ref": "AAAAAAFwNiASuauhjG8="
+									},
+									"model": {
+										"$ref": "AAAAAAFwNiASuaufnoo="
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"left": 498,
+									"top": 253,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAFwNiASuauhjG8="
+									},
+									"edgePosition": 1
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAFwL/qYwWGPZYw="
+							},
+							"tail": {
+								"$ref": "AAAAAAFwNhxdGauC9CI="
+							},
+							"lineStyle": 2,
+							"points": "513:280;513:240",
+							"nameLabel": {
+								"$ref": "AAAAAAFwNiASuaui4b8="
 							}
 						}
 					]
@@ -2782,16 +2985,16 @@
 						},
 						{
 							"_type": "FCFlow",
-							"_id": "AAAAAAFwL/O8bWFx1KI=",
+							"_id": "AAAAAAFwNhppEqtTDzE=",
 							"_parent": {
 								"$ref": "AAAAAAFwL+rPWmDssGE="
 							},
-							"name": "[New elevator requests its old cab orders]",
+							"name": "[new elevator on network]",
 							"source": {
 								"$ref": "AAAAAAFwL+rPWmDssGE="
 							},
 							"target": {
-								"$ref": "AAAAAAFwL/MYwmFnihA="
+								"$ref": "AAAAAAFwNho436tJqbw="
 							}
 						}
 					]
@@ -2887,6 +3090,65 @@
 							}
 						}
 					]
+				},
+				{
+					"_type": "FCDecision",
+					"_id": "AAAAAAFwNho436tJqbw=",
+					"_parent": {
+						"$ref": "AAAAAAFwL+TE+mCi0zY="
+					},
+					"ownedElements": [
+						{
+							"_type": "FCFlow",
+							"_id": "AAAAAAFwNhqlP6tdsOo=",
+							"_parent": {
+								"$ref": "AAAAAAFwNho436tJqbw="
+							},
+							"name": "[requests old cab orders]",
+							"source": {
+								"$ref": "AAAAAAFwNho436tJqbw="
+							},
+							"target": {
+								"$ref": "AAAAAAFwL/MYwmFnihA="
+							}
+						},
+						{
+							"_type": "FCFlow",
+							"_id": "AAAAAAFwNh8yyauRfC4=",
+							"_parent": {
+								"$ref": "AAAAAAFwNho436tJqbw="
+							},
+							"source": {
+								"$ref": "AAAAAAFwNho436tJqbw="
+							},
+							"target": {
+								"$ref": "AAAAAAFwNhxdGKuAsi4="
+							}
+						}
+					]
+				},
+				{
+					"_type": "FCProcess",
+					"_id": "AAAAAAFwNhxdGKuAsi4=",
+					"_parent": {
+						"$ref": "AAAAAAFwL+TE+mCi0zY="
+					},
+					"name": "Syncronize queue",
+					"ownedElements": [
+						{
+							"_type": "FCFlow",
+							"_id": "AAAAAAFwNiASuaufnoo=",
+							"_parent": {
+								"$ref": "AAAAAAFwNhxdGKuAsi4="
+							},
+							"source": {
+								"$ref": "AAAAAAFwNhxdGKuAsi4="
+							},
+							"target": {
+								"$ref": "AAAAAAFwL/qYwWGN8JU="
+							}
+						}
+					]
 				}
 			]
 		},
@@ -2975,7 +3237,7 @@
 									"left": 266,
 									"top": 714,
 									"width": 157,
-									"height": 26,
+									"height": 13,
 									"text": "Delete assigned hall orders",
 									"wordWrap": true
 								}
