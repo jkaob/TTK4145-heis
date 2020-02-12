@@ -1,7 +1,7 @@
 elevator.con
 
 // Value: [ET_simulation, ET_comedi]
---elevatorType              ET_Simulation
+--elevatorType              ET_comedi
 
 // Value: [CV_All, CV_InDirn]
 --clearRequestVariant       CV_All
