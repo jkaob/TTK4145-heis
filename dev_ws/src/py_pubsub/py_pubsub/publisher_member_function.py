@@ -43,8 +43,9 @@ def main(args=None):
     rclpy.init(args=args)
 
     minimal_publisher = MinimalPublisher()
-
-    rclpy.spin()
+    while(1):
+        print("do stuff")
+        rclpy.spin(minimal_publisher)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
