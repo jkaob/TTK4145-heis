@@ -1,0 +1,4 @@
+[console_scripts]
+lytter = py_pubsub.subscriber_member_function:main
+prater = py_pubsub.publisher_member_function:main
+
