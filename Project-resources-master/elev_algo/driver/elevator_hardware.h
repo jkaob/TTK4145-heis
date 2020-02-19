@@ -13,9 +13,9 @@ typedef enum tag_elevator_hardware_motor_direction {
 } elevator_hardware_motor_direction_t;
 
 typedef enum tag_elevator_hardware_lamp_type { 
-    BUTTON_CALL_UP = 0,
-    BUTTON_CALL_DOWN = 1,
-    BUTTON_COMMAND = 2
+    BTN_HALL_UP = 0,
+    BTN_HALL_DOWN = 1,
+    BTN_CAB = 2
 } elevator_hardware_button_type_t;
 
 void elevator_hardware_init();

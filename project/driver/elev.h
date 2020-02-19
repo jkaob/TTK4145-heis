@@ -15,9 +15,9 @@ typedef enum tag_elev_motor_direction {
 } elev_motor_direction_t;
 
 typedef enum tag_elev_lamp_type {
-    BUTTON_CALL_UP = 0,
-    BUTTON_CALL_DOWN = 1,
-    BUTTON_COMMAND = 2
+    BTN_HALL_UP = 0,
+    BTN_HALL_DOWN = 1,
+    BTN_CAB = 2
 } elev_button_type_t;
 
 typedef enum {

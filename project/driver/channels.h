@@ -7,10 +7,10 @@
 #define PORT_4_DIRECTION        COMEDI_INPUT
 #define OBSTRUCTION             (0x300+23)
 #define STOP                    (0x300+22)
-#define BUTTON_COMMAND1         (0x300+21)
-#define BUTTON_COMMAND2         (0x300+20)
-#define BUTTON_COMMAND3         (0x300+19)
-#define BUTTON_COMMAND4         (0x300+18)
+#define BTN_CAB1         (0x300+21)
+#define BTN_CAB2         (0x300+20)
+#define BTN_CAB3         (0x300+19)
+#define BTN_CAB4         (0x300+18)
 #define BUTTON_UP1              (0x300+17)
 #define BUTTON_UP2              (0x300+16)
 
