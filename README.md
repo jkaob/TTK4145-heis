@@ -12,3 +12,6 @@ The following line shows how to compile the driver library.
 gcc --std=gnu11 -shared -fPIC io.c elev.c -o driver.so /usr/lib/libcomedi.so
 ```
 
+### ROS2
+The project is running on ROS2 Eloquent. To install this follow this guide:
+https://index.ros.org/doc/ros2/Installation/Eloquent/Linux-Install-Debians/
