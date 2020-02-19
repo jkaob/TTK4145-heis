@@ -58,14 +58,14 @@ int requests_shouldStop(Elevator e){
 
 
 Elevator requests_clearAtCurrentFloor(Elevator e){
-        
+
     switch(e.config.clearRequestVariant){
     case CV_All:
         for(Button btn = 0; btn < N_BUTTONS; btn++){
             e.requests[e.floor][btn] = 0;
         }
         break;
-        
+
     case CV_InDirn:
         e.requests[e.floor][B_Cab] = 0;
         switch(e.dirn){
@@ -75,14 +75,14 @@ Elevator requests_clearAtCurrentFloor(Elevator e){
                 e.requests[e.floor][B_HallDown] = 0;
             }
             break;
-            
+
         case D_Down:
             e.requests[e.floor][B_HallDown] = 0;
             if(!requests_below(e)){
                 e.requests[e.floor][B_HallUp] = 0;
             }
             break;
-            
+
         case D_Stop:
         default:
             e.requests[e.floor][B_HallUp] = 0;
@@ -90,21 +90,10 @@ Elevator requests_clearAtCurrentFloor(Elevator e){
             break;
         }
         break;
-        
+
     default:
         break;
     }
-    
+
     return e;
 }
-
-
-
-
-
-
-
-
-
-
-

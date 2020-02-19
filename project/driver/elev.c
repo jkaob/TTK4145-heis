@@ -23,10 +23,10 @@ static const int lamp_channel_matrix[N_FLOORS][N_BUTTONS] = {
 
 
 static const int button_channel_matrix[N_FLOORS][N_BUTTONS] = {
-    {BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
-    {BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
-    {BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
-    {BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
+    {BUTTON_UP1, BUTTON_DOWN1, BTN_CAB1},
+    {BUTTON_UP2, BUTTON_DOWN2, BTN_CAB2},
+    {BUTTON_UP3, BUTTON_DOWN3, BTN_CAB3},
+    {BUTTON_UP4, BUTTON_DOWN4, BTN_CAB4},
 };
 
 
@@ -62,15 +62,15 @@ void elev_init(elev_type e) {
             con_val("com_ip",   ip,   "%s")
             con_val("com_port", port, "%s")
         )
-        
+
         pthread_mutex_init(&sockmtx, NULL);
-    
+
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
         assert(sockfd != -1 && "Unable to set up socket");
 
         struct addrinfo hints = {
-            .ai_family      = AF_UNSPEC, 
-            .ai_socktype    = SOCK_STREAM, 
+            .ai_family      = AF_UNSPEC,
+            .ai_socktype    = SOCK_STREAM,
             .ai_protocol    = IPPROTO_TCP,
         };
         struct addrinfo* res;

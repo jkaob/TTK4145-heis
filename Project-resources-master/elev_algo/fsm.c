@@ -15,7 +15,7 @@ static ElevOutputDevice     outputDevice;
 
 static void __attribute__((constructor)) fsm_init(){
     elevator = elevator_uninitialized();
-    
+
     con_load("elevator.con",
         con_val("doorOpenDuration_s", &elevator.config.doorOpenDuration_s, "%lf")
         con_enum("clearRequestVariant", &elevator.config.clearRequestVariant,
@@ -23,7 +23,7 @@ static void __attribute__((constructor)) fsm_init(){
             con_match(CV_InDirn)
         )
     )
-    
+
     outputDevice = elevio_getOutputDevice();
 }
 
@@ -44,9 +44,9 @@ void fsm_onInitBetweenFloors(void){
 void fsm_onRequestButtonPress(int btn_floor, Button btn_type){
     printf("\n\n%s(%d, %s)\n", __FUNCTION__, btn_floor, elevio_button_toString(btn_type));
     elevator_print(elevator);
-    
+
     switch(elevator.behaviour){
-        
+
     case EB_DoorOpen:
         if(elevator.floor == btn_floor){
             timer_start(elevator.config.doorOpenDuration_s);
@@ -58,7 +58,7 @@ void fsm_onRequestButtonPress(int btn_floor, Button btn_type){
     case EB_Moving:
         elevator.requests[btn_floor][btn_type] = 1;
         break;
-        
+
     case EB_Idle:
         if(elevator.floor == btn_floor){
             outputDevice.doorLight(1);
@@ -71,26 +71,25 @@ void fsm_onRequestButtonPress(int btn_floor, Button btn_type){
             elevator.behaviour = EB_Moving;
         }
         break;
-        
+
     }
-    
+
     setAllLights(elevator);
-    
+
     printf("\nNew state:\n");
     elevator_print(elevator);
 }
 
 
 
-
 void fsm_onFloorArrival(int newFloor){
     printf("\n\n%s(%d)\n", __FUNCTION__, newFloor);
     elevator_print(elevator);
-    
+
     elevator.floor = newFloor;
-    
+
     outputDevice.floorIndicator(elevator.floor);
-    
+
     switch(elevator.behaviour){
     case EB_Moving:
         if(requests_shouldStop(elevator)){
@@ -105,49 +104,35 @@ void fsm_onFloorArrival(int newFloor){
     default:
         break;
     }
-    
-    printf("\nNew state:\n");
-    elevator_print(elevator); 
-}
 
+    printf("\nNew state:\n");
+    elevator_print(elevator);
+}
 
 
 
 void fsm_onDoorTimeout(void){
     printf("\n\n%s()\n", __FUNCTION__);
     elevator_print(elevator);
-    
+
     switch(elevator.behaviour){
     case EB_DoorOpen:
         elevator.dirn = requests_chooseDirection(elevator);
-        
+
         outputDevice.doorLight(0);
         outputDevice.motorDirection(elevator.dirn);
-        
+
         if(elevator.dirn == D_Stop){
             elevator.behaviour = EB_Idle;
         } else {
             elevator.behaviour = EB_Moving;
         }
-        
+
         break;
     default:
         break;
     }
-    
+
     printf("\nNew state:\n");
     elevator_print(elevator);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
