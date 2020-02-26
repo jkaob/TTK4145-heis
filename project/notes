@@ -1,12 +1,3 @@
-# Må skrives om til python
-fsm
-
-
-# Må ikke skrives om
-timer
-requests
-
-
 Server ip: 10.100.23.147:30000
 ip labplass 1: 10.100.23.221
 ip lablplass 2: 10.100.23.233

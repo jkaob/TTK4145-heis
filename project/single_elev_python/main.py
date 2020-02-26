@@ -6,6 +6,9 @@ from status import LocalElevator
 elev = LocalElevator()
 
 
+#######ROS########
+# For å sende en ordre må callback kjøre fsm_onNewOrder(msg.id,msg.floor,msg.button)
+
 def main():
     global elev
 
