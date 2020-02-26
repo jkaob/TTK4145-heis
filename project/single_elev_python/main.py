@@ -35,5 +35,5 @@ def main():
         if (fsm.driver.elev_get_stop_signal()):
             fsm.driver.elev_set_motor_direction(constants.DIRN_STOP)
             break
-            
+
 main()

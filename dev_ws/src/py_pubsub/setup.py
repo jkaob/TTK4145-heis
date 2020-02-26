@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
                 'prater = py_pubsub.publisher_member_function:main',
                 'lytter = py_pubsub.subscriber_member_function:main',
+                'orderpublisher = py_pubsub.pub_order:main',
         ],
     },
 )

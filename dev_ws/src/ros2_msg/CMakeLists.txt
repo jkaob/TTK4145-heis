@@ -37,6 +37,7 @@ endif()
 
 rosidl_generate_interfaces(new_msg
   "msg/MyMsg.msg"
+  "msg/Order.msg"
   DEPENDENCIES builtin_interfaces
 )
 
