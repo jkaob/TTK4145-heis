@@ -3,21 +3,21 @@ import status
 
 
 def util_orderAbove(e): #Ta inn status klassen til seg selv
-    for f in range(e.floor + 1, constants.N_FLOORS):
+    for f in range(e.floor[e.id] + 1, constants.N_FLOORS):
         for b in range(constants.N_BUTTONS):
             if e.queue[e.id][f][b]:
                 return 1
     return 0
 
 def util_orderBelow(e): #Ta inn status klassen til seg selv
-    for f in range(0, e.floor):
+    for f in range(0, e.floor[e.id]):
         for b in range(constants.N_BUTTONS):
             if e.queue[e.id][f][b]:
                 return 1
     return 0
 
 def util_chooseDirection(e):
-    dir = e.direction
+    dir = e.direction[e.id]
     if (dir == constants.DIRN_UP):
         if (util_orderAbove(e)):
             return constants.DIRN_UP
@@ -36,7 +36,7 @@ def util_chooseDirection(e):
         return constants.DIRN_STOP
 
 def util_shouldStop(e):
-    dir = e.direction
+    dir = e.direction[e.id]
     if (dir == constants.DIRN_DOWN):
         return ((e.queue[e.id][e.floor][constants.BTN_HALL_DOWN]) or
                 (e.queue[e.id][e.floor][constants.BTN_CAB]) or
