@@ -31,8 +31,8 @@ def fsm_onInitBetweenFloors():
     e.behaviour = MOVING
     return
 
-def fsm_onNewOrder(id,f,b): #When a new order is distributed and confirmed from the cost function
-    e.queue[id][f][b] = 1
+def fsm_onNewOrder(e,f,b): #When a new order is distributed and confirmed from the cost function
+    e.queue[e.id][f][b] = 1
     fsm_setAllLights(e)
     return
 
