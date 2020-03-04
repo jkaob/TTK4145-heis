@@ -46,8 +46,13 @@ def fsm_onInitBetweenFloors(e):
 
 def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed from the cost function
     if(id != e.id):
-        e.queue[id][f][b] = 1
-        return
+        if id in e.queue:
+            e.queue[id][f][b] = 1
+            return
+        else:
+            temp = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
+            e.queue[id] = temp
+            e.queue[id][f][b] = 1
 
     bh = e.behaviour[e.id]
 
