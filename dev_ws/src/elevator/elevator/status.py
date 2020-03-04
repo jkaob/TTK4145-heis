@@ -1,32 +1,20 @@
 import constants
-import socket
-import os
+
 class LocalElevator:
-    # id
-    # behaviour = constants.IDLE
-    # floor
-    # direction
-    # network
-    # queue = {}
-    #######
-    # Vi burde vurdere å lage alle variabler til dict e.g:
-    # id: behaviour
-    # id: floor
-    # id: direction
-    # etc.
-    # etc.
-    #######
 
-    def __init__(self):
-        self.queue = {}
-        #Finner egen ip og setter id til ip
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        self.id = s.getsockname()[0][-3:]
+    def __init__(self,id,floor=None,behaviour=None,direction=None,queue=None):
+        self.id = id
+        self.floor = {} #Key = Elevator ID || Val = Floor
+        self.behaviour = {} #Key = Elevator ID || Val = Behaviour
+        self.direction = {} #Key = Elevator ID || Val = Direction
+        self.network = {} #Key = Elevator ID || Val = Network status
+        self.queue = {} #Key = Elevator ID || Val = Order matrix
 
-        self.behaviour = 1
-        self.floor = 1
-        self.direction = 1
-        self.network = 1
-        matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
-        self.queue[self.id] = matrix
+        if(queue == None):
+            matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
+            self.queue[self.id] = matrix
+        else:
+            self.floor[self.id] = floor #Key = Elevator ID || Val = Floor
+            self.behaviour[self.id] = behaviour #Key = Elevator ID || Val = Behaviour
+            self.direction[self.id] = direction #Key = Elevator ID || Val = Direction
+            self.queue[self.id] = queue #Key = Elevator ID || Val = Order matrix

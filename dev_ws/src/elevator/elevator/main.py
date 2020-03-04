@@ -3,14 +3,20 @@ sys.path.append("/home/student/Desktop/Gruppe1_Sanntid/TTK4145-heis/dev_ws/insta
 import timer
 import fsm
 import constants
-from status import LocalElevator
+import socket
+import os
 import rclpy
+import distributor
+from status import LocalElevator
 from rclpy.node import Node
-
 from std_msgs.msg import String
 from ros2_msg.msg import Order
 
-elev = LocalElevator()
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+local_id = s.getsockname()[0][-3:]
+
+elev = LocalElevator(local_id)
 
 
 #######ROS########
@@ -23,9 +29,19 @@ class OrderSubscriber(Node):
 
     def order_callback(self, msg):
         self.get_logger().info('New order!\n Id: %d\n Floor: %d\n Button: %s\n' %(msg.id, msg.floor, msg.button))
-        #fsm.fsm_onNewOrder(msg.id, msg.floor, msg.button)
+        #fsm.fsm_onNewOrder(elev, msg.floor, msg.button)
+        min_duration = 999
+        min_id = 0
 
-
+        for id in sorted(elev.queue):
+            elev_copy = LocalElevator(id,elev.floor[id],elev.behaviour[id],elev.direction[id],elev.queue[id])
+            duration = distributor.distributor_timeToIdle(elev_copy)
+            if(duration < min_duration):
+                min_duration = duration
+                min_id = id
+        self.get_logger().info('New order distributed to: %s\n' %(min_id))
+        if (elev.id == min_id and elev.queue[elev.id][msg.floor][msg.button] != 1):
+            fsm.fsm_onNewOrder(elev,msg.floor,msg.button)
 
 
 ###########################
@@ -35,12 +51,12 @@ def main(args=None):
 
     global elev
     fsm.fsm_init(elev)
-
+    order_subscriber.get_logger().info('Id: %s' %(elev.id))
     while(rclpy.ok()):
         #order_subscriber.get_logger().info('Her')
         rclpy.spin_once(order_subscriber,executor=None,timeout_sec=0)
 
-        #rclpyget_logger().info('Forbi')
+        #order_subscriber.get_logger().info('Forbi')
         ## Request button
         for f in range(constants.N_FLOORS):
             for b in range(constants.N_BUTTONS):
@@ -65,6 +81,7 @@ def main(args=None):
             break
 
 
+    order_subscriber.get_logger().warn('DONE!')
     order_subscriber.destroy_node()
     rclpy.shutdown()
 

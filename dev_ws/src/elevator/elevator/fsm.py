@@ -17,9 +17,9 @@ def fsm_init(e):
     while(driver.elev_get_floor_sensor_signal() == -1):
         driver.elev_set_motor_direction(constants.DIRN_DOWN)
     driver.elev_set_motor_direction(constants.DIRN_STOP)
-    e.behaviour = constants.IDLE
-    e.floor = driver.elev_get_floor_sensor_signal()
-    e.direction = constants.DIRN_STOP
+    e.floor[e.id] = driver.elev_get_floor_sensor_signal()
+    e.behaviour[e.id] = constants.IDLE
+    e.direction[e.id] = constants.DIRN_STOP
     return
 
 
@@ -37,16 +37,16 @@ def fsm_setAllLights(e): #Call this function when new order is done, as callback
 
 def fsm_onInitBetweenFloors(e):
     driver.elev_set_motor_direction(DIRN_DOWN)
-    e.direction =DIRN_DOWN
-    e.behaviour = MOVING
+    e.direction[e.id] =DIRN_DOWN
+    e.behaviour[e.id] = MOVING
     return
 
 def fsm_onNewOrder(e,f,b): #When a new order is distributed and confirmed from the cost function
 
-    bh = e.behaviour
+    bh = e.behaviour[e.id]
 
     if (bh == constants.DOOR_OPEN):
-        if (e.floor == f):
+        if (e.floor[e.id] == f):
             timer.timer_start()
         else:
             e.queue[e.id][f][b] = 1
@@ -55,23 +55,23 @@ def fsm_onNewOrder(e,f,b): #When a new order is distributed and confirmed from t
         e.queue[e.id][f][b] = 1
 
     elif (bh == constants.IDLE):
-        if (e.floor == f):
+        if (e.floor[e.id] == f):
             driver.elev_set_door_open_lamp(1)
             timer.timer_start()
-            e.behaviour = constants.DOOR_OPEN
+            e.behaviour[e.id] = constants.DOOR_OPEN
         else:
             e.queue[e.id][f][b] = 1
-            e.direction = util.util_chooseDirection(e)
-            driver.elev_set_motor_direction(e.direction)
-            e.behaviour = constants.MOVING
+            e.direction[e.id] = util.util_chooseDirection(e)
+            driver.elev_set_motor_direction(e.direction[e.id])
+            e.behaviour[e.id] = constants.MOVING
 
     fsm_setAllLights(e)
     return
 
 def fsm_onFloorArrival(e,f):
-    e.floor = f
+    e.floor[e.id] = f
     driver.elev_set_floor_indicator(f)
-    if (e.behaviour == constants.MOVING):
+    if (e.behaviour[e.id] == constants.MOVING):
         if (util.util_shouldStop(e)):
             driver.elev_set_motor_direction(constants.DIRN_STOP)
             #e.direction = constants.DIRN_STOP
@@ -81,18 +81,18 @@ def fsm_onFloorArrival(e,f):
             timer.timer_start()
             e = util.util_clearAtCurrentFloor(e)
             fsm_setAllLights(e)
-            e.behaviour = constants.DOOR_OPEN
+            e.behaviour[e.id] = constants.DOOR_OPEN
     return
 
 def fsm_onDoorTimeout(e):
-    bh = e.behaviour
+    bh = e.behaviour[e.id]
     if (bh == constants.DOOR_OPEN):
-        e.direction = util.util_chooseDirection(e)
+        e.direction[e.id] = util.util_chooseDirection(e)
         driver.elev_set_door_open_lamp(0)
-        driver.elev_set_motor_direction(e.direction)
+        driver.elev_set_motor_direction(e.direction[e.id])
 
-        if (e.direction == constants.DIRN_STOP):
-            e.behaviour = constants.IDLE
+        if (e.direction[e.id] == constants.DIRN_STOP):
+            e.behaviour[e.id] = constants.IDLE
         else:
-            e.behaviour = constants.MOVING
+            e.behaviour[e.id] = constants.MOVING
     return
