@@ -12,7 +12,7 @@ class LocalElevator:
     #######
 
     def __init__(self):
-        self.floor {} #Key = Elevator ID || Val = Floor
+        self.floor = {} #Key = Elevator ID || Val = Floor
         self.behaviour = {} #Key = Elevator ID || Val = Behaviour
         self.direction = {} #Key = Elevator ID || Val = Direction
         self.network = {} #Key = Elevator ID || Val = Network status
