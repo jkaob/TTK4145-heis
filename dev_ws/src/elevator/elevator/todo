@@ -10,8 +10,16 @@
 - Check for unfinished jobs i.e. hardware error
 
 
-- Fix lights when orders are spammed
 
 
 # Small stuff
 DONE - Fix hardcoded path in fsm.py
+
+
+
+
+##TIL NESTE GANG
+
+- Key error, line 95 in  order_callback, f = elev_copy.floor[id]
+    keyerror: 237
+- Fix lights when orders are spammed
