@@ -1,94 +1,212 @@
 import sys
-sys.path.append("/home/student/Desktop/Gruppe1_Sanntid/TTK4145-heis/dev_ws/install/elevator/lib/python3.6/site-packages/elevator")
+import os
+#### Add script path for ros compiled files to find them ###
+install_dir = os.path.join(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(install_dir))
+############################################################
+
 import timer
+import time
 import fsm
 import constants
 import socket
-import os
 import rclpy
 import distributor
+import copy
 from status import LocalElevator
+from statusCopy import SingleElevatorCopy
+
 from rclpy.node import Node
 from std_msgs.msg import String
 from ros2_msg.msg import Order
+from ros2_msg.msg import OrderConfirmed
+from ros2_msg.msg import Status
 
+
+import numpy as np
+
+
+## Get ip this computer ##
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 local_id = s.getsockname()[0][-3:]
+###########################
 
-elev = LocalElevator(local_id)
+
+elev = LocalElevator(int(local_id))
 
 
 #######ROS########
 # For å sende en ordre må callback kjøre fsm_onNewOrder(msg.id,msg.floor,msg.button)
-class OrderSubscriber(Node):
+class OrderNode(Node):
 
     def __init__(self):
-        super().__init__('order_subscriber')
-        self.subscription = self.create_subscription(Order,'orders' ,self.order_callback,10)
+        super().__init__('order_node')
+        #Subscribersconfirmed
+        self.order_subscriber = self.create_subscription(Order, 'orders', self.order_callback, 10)
+        self.order_confirmed_subscriber = self.create_subscription(Order, 'confirmed_orders', self.order_confirmed_callback, 10)
+        self.order_executed_subscriber = self.create_subscription(Order, 'executed_orders', self.order_executed_callback, 10)
+        self.status_subscriber = self.create_subscription(Status, 'status', self.status_callback,10)
+
+        #Publishers
+        self.order_publisher = self.create_publisher(Order, "orders", 10)
+        self.order_confirmed_publisher = self.create_publisher(Order,'confirmed_orders', 10)
+        self.order_executed_publisher = self.create_publisher(Order,'executed_orders', 10)
+        self.status_publisher = self.create_publisher(Status, 'status', 10)
+
+    #Callback functions
+
+    def status_callback(self, msg):
+        elev.floor[msg.id] = msg.floor
+        elev.behaviour[msg.id] = msg.behaviour
+        elev.direction[msg.id] = msg.direction
+
+    def order_confirmed_callback(self, msg):
+        for start_time in sorted(elev.unacknowledgedOrders):
+            id = elev.unacknowledgedOrders[start_time][0]
+            f = elev.unacknowledgedOrders[start_time][1]
+            b = elev.unacknowledgedOrders[start_time][2]
+            if(msg.id == id and msg.floor == f and msg.button == b):
+                timer_orderConfirmedStop(elev,start_time)
+
+    def order_executed_callback(self, msg):
+        if (msg.id != elev.id):
+            fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 
     def order_callback(self, msg):
         self.get_logger().info('New order!\n Id: %d\n Floor: %d\n Button: %s\n' %(msg.id, msg.floor, msg.button))
-
 
 #################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
         min_duration = 999
         min_id = 0
 
-        for id in sorted(elev.queue):
-            elev_copy = LocalElevator(id,elev.floor[id],elev.behaviour[id],elev.direction[id],elev.queue[id])
-            duration = distributor.distributor_timeToIdle(elev_copy)
+        print("Før kopi")
+        print(elev.queue[elev.id])
+        print('\n')
+
+        elev_copy = copy.deepcopy(elev)
+
+        print("Etter kopi")
+        print(elev.queue[elev.id])
+        print('\n')
+
+        for id in sorted(elev_copy.queue):
+
+            f = elev_copy.floor[id]
+            bh = elev_copy.behaviour[id]
+            dir = elev_copy.direction[id]
+            qu = elev_copy.queue[id]
+
+            single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
+
+            single_elev_copy.queue[id][2][2] = 4
+
+            print("Single elev copy")
+            print(single_elev_copy.queue[id])
+            print('\n')
+
+            duration = distributor.distributor_timeToIdle(single_elev_copy)
             if(duration < min_duration):
                 min_duration = duration
                 min_id = id
-        self.get_logger().info('New order distributed to: %s\n' %(min_id))
 ###################################################################################
+        self.get_logger().info('New order distributed to: %s' %(min_id))
         if (elev.id == min_id):
             fsm.fsm_onNewOrder(elev, msg.id, msg.floor,msg.button)
+            print(elev.queue[elev.id])
+            print('\n')
+            order_confirmed_msg = Order()
+            order_confirmed_msg.id = elev.id
+            order_confirmed_msg.floor = msg.floor
+            order_confirmed_msg.button = msg.button
             ##publish order received to reset timer
+            self.order_confirmed_publisher.publish(order_confirmed_msg)
+
+            status_msg = Status()
+            status_msg.id = elev.id
+            status_msg.behaviour = elev.behaviour[elev.id]
+            status_msg.direction = elev.direction[elev.id]
+            status_msg.floor = elev.floor[elev.id]
+
+            self.status_publisher.publish(status_msg)
+
         else:
-            #Start confirmation timer
-            # if time_out - rerun order_callback(msg)
+            #Add to unacknowledgedOrders
+            timer.timer_orderConfirmedStart(min_id, msg.floor, msg.button)
+
+
 
 ############### MAIN LOOP #####################
 def main(args=None):
     rclpy.init(args=args)
-    order_subscriber = OrderSubscriber()
+    order_node = OrderNode()
 
     global elev
     fsm.fsm_init(elev)
-    order_subscriber.get_logger().info('Id: %s' %(elev.id))
+    order_node.get_logger().info('Id: %d' %(elev.id))
     while(rclpy.ok()):
-        #order_subscriber.get_logger().info('Her')
-        rclpy.spin_once(order_subscriber,executor=None,timeout_sec=0)
+        #order_node.get_logger().info('Her')
+        rclpy.spin_once(order_node,executor=None,timeout_sec=0)
 
-        #order_subscriber.get_logger().info('Forbi')
+        #order_node.get_logger().info('Forbi')
         ## Request button
         for f in range(constants.N_FLOORS):
             for b in range(constants.N_BUTTONS):
                 v = fsm.driver.elev_get_button_signal(b,f)
                 if(v and (v != elev.queue[elev.id][f][b])):
-                    fsm.fsm_onNewOrder(elev,elev.id,f,b)
+                    order_newOrderMsg = Order()
+                    order_newOrderMsg.id = elev.id
+                    order_newOrderMsg.floor = f
+                    order_newOrderMsg.button = b
+                    order_node.order_publisher.publish(order_newOrderMsg)
+                    #fsm.fsm_onNewOrder(elev,elev.id,f,b)
 
         ## Floor sensor
         f = fsm.driver.elev_get_floor_sensor_signal()
-        if(f != -1 and f != elev.floor):
-            fsm.fsm_onFloorArrival(elev,f)
+        if(f != -1 and f != elev.floor[elev.id]):
+            fsm.fsm_onFloorArrival(elev,elev.id,f)
+            if (elev.behaviour[elev.id] == constants.DOOR_OPEN):
+                order_OrderExecutedMsg = Order()
+                order_OrderExecutedMsg.id = elev.id
+                order_OrderExecutedMsg.floor = f
+                order_node.order_executed_publisher.publish(order_OrderExecutedMsg)
 
-        ## Timer
+                status_msg = Status()
+                status_msg.id = elev.id
+                status_msg.behaviour = elev.behaviour[elev.id]
+                status_msg.direction = elev.direction[elev.id]
+                status_msg.floor = elev.floor[elev.id]
+
+                order_node.status_publisher.publish(status_msg)
+
+        ## Timers
         if(timer.timer_timedOut()):
             timer.timer_stop()
             fsm.fsm_onDoorTimeout(elev)
 
+            status_msg = Status()
+            status_msg.id = elev.id
+            status_msg.behaviour = elev.behaviour[elev.id]
+            status_msg.direction = elev.direction[elev.id]
+            status_msg.floor = elev.floor[elev.id]
+
+            order_node.status_publisher.publish(status_msg)
+
+        for start_time in sorted(elev.unacknowledgedOrders):
+            f = elev.unacknowledgedOrders[start_time][1]
+            b = elev.unacknowledgedOrders[start_time][2]
+            if(timer.timer_orderConfirmedTimeout(start_time)):
+                order_node.get_logger().warn('Order Confirmation Timed Out!')
+                fsm.fsm_onNewOrder(elev,elev.id,f,b)
+                timer.timer_orderConfirmedStop(elev, start_time)
 
         ##Stop button
         if (fsm.driver.elev_get_stop_signal()):
             fsm.driver.elev_set_motor_direction(constants.DIRN_STOP)
             break
 
-
-    order_subscriber.get_logger().warn('DONE!')
-    order_subscriber.destroy_node()
+    order_node.get_logger().warn('Main loop done, shutting down.')
+    order_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

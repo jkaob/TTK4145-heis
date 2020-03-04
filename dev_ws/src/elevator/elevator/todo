@@ -3,11 +3,15 @@
 
 ### Publisher med subscription
 - OrderConfirmed (Nullstill global timer)
+    Generate a pseudo random order_id to distinguish different orders?
+
 - OrderExecuted (Call fsm_onFloorArrival to reset id)
 
+- Check for unfinished jobs i.e. hardware error
 
 
+- Fix lights when orders are spammed
 
 
 # Small stuff
-- Fix hardcoded path in fsm.py
+DONE - Fix hardcoded path in fsm.py

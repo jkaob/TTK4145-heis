@@ -31,7 +31,7 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
         duration -= constants.TIME_DOOR_OPEN/2
 
     while (1):
-        if (util_shouldStop(e)):
+        if (util.util_shouldStop(e)):
             e = util.util_clearAtCurrentFloor(e)
             duration += constants.TIME_DOOR_OPEN
             e.direction[e.id] = util.util_chooseDirection(e)
@@ -39,4 +39,4 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
                 return duration
 
         e.floor[e.id] += e.direction[e.id]
-        duration += TIME_BETWEEN_FLOORS
+        duration += constants.TIME_BETWEEN_FLOORS

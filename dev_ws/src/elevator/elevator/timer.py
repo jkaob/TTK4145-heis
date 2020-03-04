@@ -4,6 +4,8 @@ import time
 
 #Undersøk denne litt mer
 
+
+#DOOR TIMER
 timer_active = 0
 end_time = 0
 
@@ -21,4 +23,18 @@ def timer_start():
     global timer_active
     end_time = time.time()+constants.TIME_DOOR_OPEN
     timer_active = 1
+    return
+
+
+# ORDER WATCHDOG TIMER
+def timer_orderConfirmedTimeout(start_time):
+    return (time.time()>start_time+constants.TIMER_ORDER_TIMEOUT)
+
+def timer_orderConfirmedStop(e,start_time):
+    e.unacknowledgedOrders.pop(start_time, None)
+    return
+
+
+def timer_orderConfirmedStart(e,id,f,btn):
+    e.unacknowledgedOrders[time.time()] = [id, d, btn]
     return

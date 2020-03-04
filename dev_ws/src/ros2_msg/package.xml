@@ -4,7 +4,7 @@
   <name>ros2_msg</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="c.sletten99@gmail.com">student</maintainer>
+  <maintainer email="lars.musaus@gmail.com">student</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

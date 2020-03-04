@@ -9,7 +9,7 @@ class LocalElevator:
         self.direction = {} #Key = Elevator ID || Val = Direction
         self.network = {} #Key = Elevator ID || Val = Network status
         self.queue = {} #Key = Elevator ID || Val = Order matrix
-
+        self.unacknowledgedOrders = {} #key = Start time || Val =Elevator ID, floor, btn
         if(queue == None):
             matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
             self.queue[self.id] = matrix
