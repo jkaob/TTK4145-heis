@@ -3,15 +3,7 @@ import socket
 import os
 class LocalElevator:
 
-    # Vi burde vurdere å lage alle variabler til dict e.g:
-    # id: behaviour
-    # id: floor
-    # id: direction
-    # etc.
-    # etc.
-    #######
-
-    def __init__(self):
+    def __init__(self,floor,bh,dir,queue):
         self.floor = {} #Key = Elevator ID || Val = Floor
         self.behaviour = {} #Key = Elevator ID || Val = Behaviour
         self.direction = {} #Key = Elevator ID || Val = Direction

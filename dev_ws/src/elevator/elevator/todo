@@ -1,1 +1,13 @@
-Fix hardcoded path in fsm.py
+
+### TODO DEV ###
+
+### Publisher med subscription
+- OrderConfirmed (Nullstill global timer)
+- OrderExecuted (Call fsm_onFloorArrival to reset id)
+
+
+
+
+
+# Small stuff
+- Fix hardcoded path in fsm.py

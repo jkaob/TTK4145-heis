@@ -41,7 +41,10 @@ def fsm_onInitBetweenFloors(e):
     e.behaviour[e.id] = MOVING
     return
 
-def fsm_onNewOrder(e,f,b): #When a new order is distributed and confirmed from the cost function
+def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed from the cost function
+    if(id != e.id):
+        e.queue[id][f][b] = 1
+        return
 
     bh = e.behaviour[e.id]
 

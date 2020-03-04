@@ -29,7 +29,9 @@ class OrderSubscriber(Node):
 
     def order_callback(self, msg):
         self.get_logger().info('New order!\n Id: %d\n Floor: %d\n Button: %s\n' %(msg.id, msg.floor, msg.button))
-        #fsm.fsm_onNewOrder(elev, msg.floor, msg.button)
+
+
+#################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
         min_duration = 999
         min_id = 0
 
@@ -40,11 +42,15 @@ class OrderSubscriber(Node):
                 min_duration = duration
                 min_id = id
         self.get_logger().info('New order distributed to: %s\n' %(min_id))
-        if (elev.id == min_id and elev.queue[elev.id][msg.floor][msg.button] != 1):
-            fsm.fsm_onNewOrder(elev,msg.floor,msg.button)
+###################################################################################
+        if (elev.id == min_id):
+            fsm.fsm_onNewOrder(elev, msg.id, msg.floor,msg.button)
+            ##publish order received to reset timer
+        else:
+            #Start confirmation timer
+            # if time_out - rerun order_callback(msg)
 
-
-###########################
+############### MAIN LOOP #####################
 def main(args=None):
     rclpy.init(args=args)
     order_subscriber = OrderSubscriber()
@@ -62,7 +68,7 @@ def main(args=None):
             for b in range(constants.N_BUTTONS):
                 v = fsm.driver.elev_get_button_signal(b,f)
                 if(v and (v != elev.queue[elev.id][f][b])):
-                    fsm.fsm_onNewOrder(elev,f,b)
+                    fsm.fsm_onNewOrder(elev,elev.id,f,b)
 
         ## Floor sensor
         f = fsm.driver.elev_get_floor_sensor_signal()
