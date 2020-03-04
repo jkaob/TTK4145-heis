@@ -25,7 +25,7 @@ def main():
 
         ## Floor sensor
         f = fsm.driver.elev_get_floor_sensor_signal()
-        if(f != -1 and f != elev.floor):
+        if(f != -1 and f != elev.floor[elev.id]):
             fsm.fsm_onFloorArrival(elev,f)
 
         ## Timer

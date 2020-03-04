@@ -16,24 +16,24 @@ import fsm
 
 def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
     duration = 0
-    bh = e.behaviour
+    bh = e.behaviour[e.id]
 
     if (bh == IDLE):
-        e.direction = util_chooseDirection(e)
-        if (e.direction == DIRN_STOP):
+        e.direction[e.id] = util_chooseDirection(e)
+        if (e.direction[e.id] == DIRN_STOP):
             return duration
     else if (bh == MOVING):
         duration += TIME_BETWEEN_FLOORS/2
-        e.floor += e.direction
+        e.floor[e.id] += e.direction[e.id]
     else if (bh == DOOR_OPEN):
         duration -= TIME_DOOR_OPEN/2
     while (1):
         if (util_shouldStop(e)):
             e = util_clearAtCurrentFloor(e)
             duration += TIME_DOOR_OPEN
-            e.direction = util_chooseDirection(e)
-            if (e.direction == DIRN_STOP):
+            e.direction[e.id] = util_chooseDirection(e)
+            if (e.direction[e.id] == DIRN_STOP):
                 return duration
 
-        e.floor += e.direction
+        e.floor[e.id] += e.direction[e.id]
         duration += TIME_BETWEEN_FLOORS
