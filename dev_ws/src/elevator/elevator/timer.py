@@ -28,7 +28,7 @@ def timer_start():
 
 # ORDER WATCHDOG TIMER
 def timer_orderConfirmedTimeout(start_time):
-    return (time.time()>start_time+constants.TIMER_ORDER_TIMEOUT)
+    return (time.time()>start_time+constants.TIME_ORDER_TIMEOUT)
 
 def timer_orderConfirmedStop(e,start_time):
     e.unacknowledgedOrders.pop(start_time, None)
@@ -36,5 +36,5 @@ def timer_orderConfirmedStop(e,start_time):
 
 
 def timer_orderConfirmedStart(e,id,f,btn):
-    e.unacknowledgedOrders[time.time()] = [id, d, btn]
+    e.unacknowledgedOrders[time.time()] = [id, f, btn]
     return

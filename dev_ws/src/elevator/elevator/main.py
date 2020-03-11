@@ -41,7 +41,7 @@ elev = LocalElevator(int(local_id))
 class OrderNode(Node):
 
     def __init__(self):
-        super().__init__('order_node')
+        super().__init__('order_node_'+str(local_id))
         #Subscribersconfirmed
         self.order_subscriber = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(Order, 'confirmed_orders', self.order_confirmed_callback, 10)
@@ -106,7 +106,7 @@ class OrderNode(Node):
             f = elev.unacknowledgedOrders[start_time][1]
             b = elev.unacknowledgedOrders[start_time][2]
             if(msg.id == id and msg.floor == f and msg.button == b):
-                timer_orderConfirmedStop(elev,start_time)
+                timer.timer_orderConfirmedStop(elev,start_time)
 
     def order_executed_callback(self, msg):
         if (msg.id != elev.id):
@@ -120,14 +120,14 @@ class OrderNode(Node):
         min_id = 0
 
         #print("Før kopi")
-        print(elev.queue[elev.id])
-        print('\n')
+        # print(elev.queue[elev.id])
+        # print('\n')
 
         elev_copy = copy.deepcopy(elev)
 
         #print("Etter kopi")
-        print(elev.queue[elev.id])
-        print('\n')
+        # print(elev.queue[elev.id])
+        # print('\n')
 
         for id in sorted(elev_copy.queue):
 
@@ -151,7 +151,7 @@ class OrderNode(Node):
 ###################################################################################
         self.get_logger().info('New order distributed to: %s' %(min_id))
         if (elev.id == min_id):
-            fsm.fsm_onNewOrder(elev, msg.id, msg.floor,msg.button)
+            fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
             print(elev.queue[elev.id])
             print('\n')
             order_confirmed_msg = Order()
@@ -171,7 +171,7 @@ class OrderNode(Node):
 
         else:
             #Add to unacknowledgedOrders
-            timer.timer_orderConfirmedStart(min_id, msg.floor, msg.button)
+            timer.timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
 
 
 
