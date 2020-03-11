@@ -1,26 +1,17 @@
 
 ### TODO DEV ###
+- Fix lights (update all lights on status)
+- Order executed timeout (detect hardware error)
+- Execute cab orders locally (they are served globally now)
+- Test med pakketap
+- Når en heis faller av nettet, kopier køen osv.
+- Cost funtion
+    - When an elevator is Idle at a floor, it should always take new orders on that floor
+    - Check for further inefficiencies ?
+- Setup simulator
+- Code quality & file cleanup
 
-### Publisher med subscription
-- OrderConfirmed (Nullstill global timer)
-    Generate a pseudo random order_id to distinguish different orders?
-
-- OrderExecuted (Call fsm_onFloorArrival to reset id)
-
-- Check for unfinished jobs i.e. hardware error
-
-
-
-
-# Small stuff
-DONE - Fix hardcoded path in fsm.py
-
-
-
-
-##TIL NESTE GANG
-
+# DONE
+- Fix hardcoded path in fsm.py
 - Key error, line 95 in  order_callback, f = elev_copy.floor[id]
-    keyerror: 237
-- Fix lights when orders are spammed
 - Change order_node name

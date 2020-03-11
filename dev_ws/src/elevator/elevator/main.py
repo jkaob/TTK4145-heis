@@ -107,12 +107,13 @@ class OrderNode(Node):
             b = elev.unacknowledgedOrders[start_time][2]
             if(msg.id == id and msg.floor == f and msg.button == b):
                 timer.timer_orderConfirmedStop(elev,start_time)
+                fsm.fsm_onNewOrder(elev,id,f,b)
         #Print all queues
         for id in elev.queue:
             print("Id: %d\t" %(id), end = " ")
             print(elev.queue[id])
-
         print(" --- \n")
+
     def order_executed_callback(self, msg):
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
