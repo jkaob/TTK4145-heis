@@ -107,13 +107,18 @@ class OrderNode(Node):
             b = elev.unacknowledgedOrders[start_time][2]
             if(msg.id == id and msg.floor == f and msg.button == b):
                 timer.timer_orderConfirmedStop(elev,start_time)
+        #Print all queues
+        for id in elev.queue:
+            print("Id: %d\t" %(id), end = " ")
+            print(elev.queue[id])
 
+        print(" --- \n")
     def order_executed_callback(self, msg):
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 
     def order_callback(self, msg):
-        self.get_logger().info('New order!\n Id: %d\n Floor: %d\n Button: %s\n' %(msg.id, msg.floor, msg.button))
+        self.get_logger().info('New order from: %d\n Floor: %d\n Button: %s' %(msg.id, msg.floor, msg.button))
 
 #################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
         min_duration = 999
@@ -149,11 +154,10 @@ class OrderNode(Node):
                 min_duration = duration
                 min_id = id
 ###################################################################################
-        self.get_logger().info('New order distributed to: %s' %(min_id))
+        self.get_logger().info('New order distributed to: %s\n' %(min_id))
+
         if (elev.id == min_id):
             fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
-            print(elev.queue[elev.id])
-            print('\n')
             order_confirmed_msg = Order()
             order_confirmed_msg.id = elev.id
             order_confirmed_msg.floor = msg.floor
@@ -182,7 +186,7 @@ def main(args=None):
 
     global elev
     fsm.fsm_init(elev)
-    order_node.get_logger().info('Id: %d' %(elev.id))
+    order_node.get_logger().warn('Init complete! Id: %d\n' %(elev.id))
 
     init_msg = Status()
     init_msg.id = elev.id
@@ -203,6 +207,8 @@ def main(args=None):
             for b in range(constants.N_BUTTONS):
                 v = fsm.driver.elev_get_button_signal(b,f)
                 if(v and (v != elev.queue[elev.id][f][b])):
+                    while ( fsm.driver.elev_get_button_signal(b,f) ):
+                        pass
                     order_newOrderMsg           = Order()
                     order_newOrderMsg.id        = elev.id
                     order_newOrderMsg.floor     = f
