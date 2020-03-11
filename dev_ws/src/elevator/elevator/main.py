@@ -46,17 +46,56 @@ class OrderNode(Node):
         self.order_subscriber = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(Order, 'confirmed_orders', self.order_confirmed_callback, 10)
         self.order_executed_subscriber = self.create_subscription(Order, 'executed_orders', self.order_executed_callback, 10)
-        self.status_subscriber = self.create_subscription(Status, 'status', self.status_callback,10)
+        self.status_subscriber = self.create_subscription(Status, 'status', self.status_callback, 10)
+        self.init_subscriber = self.create_subscription(Status, 'init', self.init_callback, 10)
+        self.node_subscriber = self.create_subscription(Status, 'node', self.node_callback, 10)
 
         #Publishers
         self.order_publisher = self.create_publisher(Order, "orders", 10)
         self.order_confirmed_publisher = self.create_publisher(Order,'confirmed_orders', 10)
         self.order_executed_publisher = self.create_publisher(Order,'executed_orders', 10)
         self.status_publisher = self.create_publisher(Status, 'status', 10)
-
+        self.init_publisher = self.create_publisher(Status, 'init', 10)
+        self.node_publisher = self.create_publisher(Status, 'node', 10)
     #Callback functions
 
+    def node_callback(self,msg):
+        elev.floor[msg.id] = msg.floor
+        elev.behaviour[msg.id] = msg.behaviour
+        elev.direction[msg.id] = msg.direction
+        if (msg.id not in elev.queue):
+            matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
+            elev.queue[msg.id] = matrix
+        for f in range(constants.N_FLOORS):
+            for b in range(constants.N_BUTTONS):
+                index = f*constants.N_BUTTONS + b
+                elev.queue[msg.id][f][b] = msg.queue[index]
+
+
+    def init_callback(self,msg):
+        elev.floor[msg.id] = msg.floor
+        elev.behaviour[msg.id] = msg.behaviour
+        elev.direction[msg.id] = msg.direction
+        matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
+        elev.queue[msg.id] = matrix
+
+        node_msg = Status()
+        node_msg.id = elev.id
+        node_msg.behaviour = elev.behaviour[elev.id]
+        node_msg.direction = elev.direction[elev.id]
+        node_msg.floor = elev.floor[elev.id]
+        node_msg.queue = [0 for i in range(constants.N_BUTTONS * constants.N_FLOORS)];
+
+        for f in range(constants.N_FLOORS):
+            for b in range(constants.N_BUTTONS):
+                index = f*constants.N_BUTTONS + b
+                node_msg.queue[index] = int(elev.queue[elev.id][f][b])
+
+        self.node_publisher.publish(node_msg)
+
+
     def status_callback(self, msg):
+
         elev.floor[msg.id] = msg.floor
         elev.behaviour[msg.id] = msg.behaviour
         elev.direction[msg.id] = msg.direction
@@ -80,13 +119,13 @@ class OrderNode(Node):
         min_duration = 999
         min_id = 0
 
-        print("Før kopi")
+        #print("Før kopi")
         print(elev.queue[elev.id])
         print('\n')
 
         elev_copy = copy.deepcopy(elev)
 
-        print("Etter kopi")
+        #print("Etter kopi")
         print(elev.queue[elev.id])
         print('\n')
 
@@ -101,9 +140,9 @@ class OrderNode(Node):
 
             single_elev_copy.queue[id][2][2] = 4
 
-            print("Single elev copy")
-            print(single_elev_copy.queue[id])
-            print('\n')
+            # print("Single elev copy")
+            # print(single_elev_copy.queue[id])
+            # print('\n')
 
             duration = distributor.distributor_timeToIdle(single_elev_copy)
             if(duration < min_duration):
@@ -144,20 +183,30 @@ def main(args=None):
     global elev
     fsm.fsm_init(elev)
     order_node.get_logger().info('Id: %d' %(elev.id))
+
+    init_msg = Status()
+    init_msg.id = elev.id
+    init_msg.behaviour = elev.behaviour[elev.id]
+    init_msg.direction = elev.direction[elev.id]
+    init_msg.floor = elev.floor[elev.id]
+    order_node.init_publisher.publish(init_msg)
+
+    rclpy.spin_once(order_node,executor=None,timeout_sec=0)
+
     while(rclpy.ok()):
         #order_node.get_logger().info('Her')
         rclpy.spin_once(order_node,executor=None,timeout_sec=0)
-
         #order_node.get_logger().info('Forbi')
+
         ## Request button
         for f in range(constants.N_FLOORS):
             for b in range(constants.N_BUTTONS):
                 v = fsm.driver.elev_get_button_signal(b,f)
                 if(v and (v != elev.queue[elev.id][f][b])):
-                    order_newOrderMsg = Order()
-                    order_newOrderMsg.id = elev.id
-                    order_newOrderMsg.floor = f
-                    order_newOrderMsg.button = b
+                    order_newOrderMsg           = Order()
+                    order_newOrderMsg.id        = elev.id
+                    order_newOrderMsg.floor     = f
+                    order_newOrderMsg.button    = b
                     order_node.order_publisher.publish(order_newOrderMsg)
                     #fsm.fsm_onNewOrder(elev,elev.id,f,b)
 
@@ -166,16 +215,16 @@ def main(args=None):
         if(f != -1 and f != elev.floor[elev.id]):
             fsm.fsm_onFloorArrival(elev,elev.id,f)
             if (elev.behaviour[elev.id] == constants.DOOR_OPEN):
-                order_OrderExecutedMsg = Order()
-                order_OrderExecutedMsg.id = elev.id
-                order_OrderExecutedMsg.floor = f
+                order_OrderExecutedMsg          = Order()
+                order_OrderExecutedMsg.id       = elev.id
+                order_OrderExecutedMsg.floor    = f
                 order_node.order_executed_publisher.publish(order_OrderExecutedMsg)
 
-                status_msg = Status()
-                status_msg.id = elev.id
-                status_msg.behaviour = elev.behaviour[elev.id]
-                status_msg.direction = elev.direction[elev.id]
-                status_msg.floor = elev.floor[elev.id]
+                status_msg              = Status()
+                status_msg.id           = elev.id
+                status_msg.behaviour    = elev.behaviour[elev.id]
+                status_msg.direction    = elev.direction[elev.id]
+                status_msg.floor        = elev.floor[elev.id]
 
                 order_node.status_publisher.publish(status_msg)
 
@@ -184,11 +233,11 @@ def main(args=None):
             timer.timer_stop()
             fsm.fsm_onDoorTimeout(elev)
 
-            status_msg = Status()
-            status_msg.id = elev.id
-            status_msg.behaviour = elev.behaviour[elev.id]
-            status_msg.direction = elev.direction[elev.id]
-            status_msg.floor = elev.floor[elev.id]
+            status_msg              = Status()
+            status_msg.id           = elev.id
+            status_msg.behaviour    = elev.behaviour[elev.id]
+            status_msg.direction    = elev.direction[elev.id]
+            status_msg.floor        = elev.floor[elev.id]
 
             order_node.status_publisher.publish(status_msg)
 
