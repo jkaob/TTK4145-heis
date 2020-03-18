@@ -37,6 +37,6 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
             e.direction[e.id] = util.util_chooseDirection(e)
             if (e.direction[e.id] == constants.DIRN_STOP):
                 return duration
-
+        print("############## Duration += 5 seconds ##############")
         e.floor[e.id] += e.direction[e.id]
         duration += constants.TIME_BETWEEN_FLOORS
