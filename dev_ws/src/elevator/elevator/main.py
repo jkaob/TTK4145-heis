@@ -120,8 +120,13 @@ class OrderNode(Node):
 
     def order_executed_callback(self, msg):
         if (msg.id != elev.id):
-            self.get_logger().info('order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
+            self.get_logger().warn('order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
+        self.get_logger().warn("Printing all queues")
+        for id in sorted(elev.queue):
+            print("Id: %d\t" %(id), end = " ")
+            print(elev.queue[id])
+        print(" --- \n")
 
     def order_callback(self, msg):
         self.get_logger().info('New order from: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
