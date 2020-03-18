@@ -22,12 +22,13 @@ Colcon is installed with apt:
 
 ```
 sudo apt install python3-colcon-common-extensions
+sudo apt install libcomedi-dev
 ```
+
 #### Ros Domain
 To talk between ros nodes on different computers you need to set a correct domain id:
 ```
 export ROS_DOMAIN_ID=42
 ```
 ## TODO
-Sende en "Hei her er jeg!" melding etter fsm_init(), hvor man sender hele køen, nettverk, direction, behaviour, floor osv.
-Etter det kan de andre heisene legge til den nye heisen i klassen sin.
+
