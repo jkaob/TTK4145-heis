@@ -58,7 +58,7 @@ void elev_init(elev_type e) {
         ;
         char ip[16] = {0};
         char port[8] = {0};
-        con_load("simulator.con",
+        con_load("src/elevator/elevator/driver/simulator.con",
             con_val("com_ip",   ip,   "%s")
             con_val("com_port", port, "%s")
         )
