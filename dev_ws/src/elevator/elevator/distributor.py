@@ -20,6 +20,7 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
     print("############## FLOOR:  %d ##############" %e.floor[e.id])
     print("############## DIRECTION:  %d ##############" %e.direction[e.id])
     print("############## BEHAVIOUR:  %d ##############" %e.behaviour[e.id])
+    print(e.queue[e.id])
 
     if (bh == constants.IDLE):
         e.direction[e.id] = util.util_chooseDirection(e)
@@ -47,3 +48,4 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
         duration += constants.TIME_BETWEEN_FLOORS
         print("############## FLOOR:  %d ##############" %e.floor[e.id])
         print("############## DIRECTION:  %d ##############" %e.direction[e.id])
+        print(e.queue[e.id])
