@@ -112,14 +112,15 @@ class OrderNode(Node):
                 timer.timer_orderConfirmedStop(elev,start_time)
                 fsm.fsm_onNewOrder(elev,id,f,b)
         #Print all queues
-        for id in elev.queue:
-            self.get_logger().warn("Printing all queues")
+        self.get_logger().warn("Printing all queues")
+        for id in sorted(elev.queue):
             print("Id: %d\t" %(id), end = " ")
             print(elev.queue[id])
         print(" --- \n")
 
     def order_executed_callback(self, msg):
         if (msg.id != elev.id):
+            self.get_logger().info('order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 
     def order_callback(self, msg):
@@ -152,7 +153,7 @@ class OrderNode(Node):
                     min_duration = duration
                     min_id = id
     ###################################################################################
-            self.get_logger().info('New hall order distributed to: %s\n' %(min_id))
+            self.get_logger().warn('New hall order distributed to: %s\n' %(min_id))
 
             if (elev.id == min_id):
                 fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
@@ -162,6 +163,12 @@ class OrderNode(Node):
                 order_confirmed_msg.button = msg.button
                 ##publish order received to reset timer
                 self.order_confirmed_publisher.publish(order_confirmed_msg)
+
+                if (elev.behaviour[elev.id] == constants.DOOR_OPEN and elev.floor[elev.id] == msg.floor):
+                    order_OrderExecutedMsg          = Order()
+                    order_OrderExecutedMsg.id       = elev.id
+                    order_OrderExecutedMsg.floor    = elev.floor[elev.id]
+                    self.order_executed_publisher.publish(order_OrderExecutedMsg)
 
                 status_msg = Status()
                 status_msg.id = elev.id
@@ -197,9 +204,7 @@ def main(args=None):
     order_node.get_logger().warn("Init message sent from self!")
 
     while(rclpy.ok()):
-        #order_node.get_logger().info('Her')
         rclpy.spin_once(order_node,executor=None,timeout_sec=0)
-        #order_node.get_logger().info('Forbi')
 
         ## Request button
         for f in range(constants.N_FLOORS):
@@ -213,7 +218,6 @@ def main(args=None):
                     order_newOrderMsg.floor     = f
                     order_newOrderMsg.button    = b
                     order_node.order_publisher.publish(order_newOrderMsg)
-                    #fsm.fsm_onNewOrder(elev,elev.id,f,b)
 
         ## Floor sensor
         f = fsm.driver.elev_get_floor_sensor_signal()
