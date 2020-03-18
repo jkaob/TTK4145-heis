@@ -65,16 +65,13 @@ class OrderNode(Node):
         elev.behaviour[msg.id] = msg.behaviour
         elev.direction[msg.id] = msg.direction
         if (msg.id not in elev.queue):
-            order_node.get_logger().warn('Elevator id not in que! Id: %d\n' %(msg.id))
+            self.get_logger().warn('Node from id %d received\n' %(msg.id))
             matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
             elev.queue[msg.id] = matrix
         for f in range(constants.N_FLOORS):
             for b in range(constants.N_BUTTONS):
                 index = f*constants.N_BUTTONS + b
                 elev.queue[msg.id][f][b] = msg.queue[index]
-        for id in elev.queue:
-            print(id)
-            print(elev.queue[id])
 
     def init_callback(self,msg):
         elev.floor[msg.id] = msg.floor
@@ -82,6 +79,8 @@ class OrderNode(Node):
         elev.direction[msg.id] = msg.direction
         matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
         elev.queue[msg.id] = matrix
+        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
+
 
         node_msg = Status()
         node_msg.id = elev.id
@@ -114,6 +113,7 @@ class OrderNode(Node):
                 fsm.fsm_onNewOrder(elev,id,f,b)
         #Print all queues
         for id in elev.queue:
+            self.get_logger().warn("Printing all queues")
             print("Id: %d\t" %(id), end = " ")
             print(elev.queue[id])
         print(" --- \n")
@@ -123,7 +123,7 @@ class OrderNode(Node):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 
     def order_callback(self, msg):
-        self.get_logger().info('New order from: %d\n Floor: %d\n Button: %s' %(msg.id, msg.floor, msg.button))
+        self.get_logger().info('New order from: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
 
         if (msg.button == constants.BTN_CAB):
             fsm.fsm_onNewOrder(elev,msg.id,msg.floor,msg.button)
@@ -134,15 +134,7 @@ class OrderNode(Node):
             min_duration = 999
             min_id = 0
 
-            #print("Før kopi")
-            # print(elev.queue[elev.id])
-            # print('\n')
-
             elev_copy = copy.deepcopy(elev)
-
-            #print("Etter kopi")
-            # print(elev.queue[elev.id])
-            # print('\n')
 
             for id in sorted(elev_copy.queue):
 
@@ -153,10 +145,6 @@ class OrderNode(Node):
 
                 single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
                 single_elev_copy.queue[id][msg.floor][msg.button] = 1
-
-                # print("Single elev copy")
-                # print(single_elev_copy.queue[id])
-                # print('\n')
 
                 duration = distributor.distributor_timeToIdle(single_elev_copy)
                 self.get_logger().warn('ID: %s      Duration: %d\n' %(id, duration))
@@ -206,7 +194,7 @@ def main(args=None):
 
     rclpy.spin_once(order_node,executor=None,timeout_sec=0)
 
-    order_node.get_logger().warn("Init message sent!")
+    order_node.get_logger().warn("Init message sent from self!")
 
     while(rclpy.ok()):
         #order_node.get_logger().info('Her')
@@ -262,7 +250,7 @@ def main(args=None):
             f = elev.unacknowledgedOrders[start_time][1]
             b = elev.unacknowledgedOrders[start_time][2]
             if(timer.timer_orderConfirmedTimeout(start_time)):
-                order_node.get_logger().warn('Order Confirmation Timed Out!')
+                order_node.get_logger().error('Order Confirmation Timed Out!')
                 fsm.fsm_onNewOrder(elev,elev.id,f,b)
                 timer.timer_orderConfirmedStop(elev, start_time)
 
@@ -271,7 +259,7 @@ def main(args=None):
             fsm.driver.elev_set_motor_direction(constants.DIRN_STOP)
             break
 
-    order_node.get_logger().warn('Main loop done, shutting down.')
+    order_node.get_logger().error('Main loop done, shutting down.')
     order_node.destroy_node()
     rclpy.shutdown()
 

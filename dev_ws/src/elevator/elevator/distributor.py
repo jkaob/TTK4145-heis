@@ -17,10 +17,6 @@ import util
 def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
     duration = 0
     bh = e.behaviour[e.id]
-    print("############## FLOOR:  %d ##############" %e.floor[e.id])
-    print("############## DIRECTION:  %d ##############" %e.direction[e.id])
-    print("############## BEHAVIOUR:  %d ##############" %e.behaviour[e.id])
-    print(e.queue[e.id])
 
     if (bh == constants.IDLE):
         e.direction[e.id] = util.util_chooseDirection(e)
@@ -36,9 +32,6 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
 
     while (1):
         if (util.util_shouldStop(e)):
-            print("############## STOP WHILE ##############")
-            print("############## FLOOR:  %d ##############" %e.floor[e.id])
-            print("############## DIRECTION:  %d ##############" %e.direction[e.id])
             e = util.util_clearAtCurrentFloor(e)
             duration += constants.TIME_DOOR_OPEN
             e.direction[e.id] = util.util_chooseDirection(e)
@@ -46,6 +39,3 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
                 return duration
         e.floor[e.id] += e.direction[e.id]
         duration += constants.TIME_BETWEEN_FLOORS
-        print("############## FLOOR:  %d ##############" %e.floor[e.id])
-        print("############## DIRECTION:  %d ##############" %e.direction[e.id])
-        print(e.queue[e.id])
