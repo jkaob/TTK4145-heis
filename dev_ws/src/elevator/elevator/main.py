@@ -65,13 +65,16 @@ class OrderNode(Node):
         elev.behaviour[msg.id] = msg.behaviour
         elev.direction[msg.id] = msg.direction
         if (msg.id not in elev.queue):
+            order_node.get_logger().warn('Elevator id not in que! Id: %d\n' %(msg.id))
             matrix = [[0 for b in range(constants.N_BUTTONS)] for f in range(constants.N_FLOORS)]
             elev.queue[msg.id] = matrix
         for f in range(constants.N_FLOORS):
             for b in range(constants.N_BUTTONS):
                 index = f*constants.N_BUTTONS + b
                 elev.queue[msg.id][f][b] = msg.queue[index]
-
+        for id in elev.queue:
+            print(id)
+            print(elev.queue[id])
 
     def init_callback(self,msg):
         elev.floor[msg.id] = msg.floor
@@ -202,6 +205,8 @@ def main(args=None):
     order_node.init_publisher.publish(init_msg)
 
     rclpy.spin_once(order_node,executor=None,timeout_sec=0)
+
+    order_node.get_logger().warn("Init message sent!")
 
     while(rclpy.ok()):
         #order_node.get_logger().info('Her')
