@@ -148,7 +148,7 @@ class OrderNode(Node):
                 qu = elev_copy.queue[id]
 
                 single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
-                single_elev_copy.queue[id][2][2] = 4
+                #single_elev_copy.queue[id][2][2] = 4
 
                 # print("Single elev copy")
                 # print(single_elev_copy.queue[id])
