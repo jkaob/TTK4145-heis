@@ -4,18 +4,18 @@
 - Order executed timeout (detect hardware error)
 - Test med pakketap
 - Når en heis faller av nettet, kopier køen osv.
-- Cost funtion
-    - When an elevator is Idle at a floor, it should always take new orders on that floor
-    - Check for further inefficiencies ?
-- Setup simulator
+
 - Code quality & file cleanup
 
 # UNDER WORK
-- Execute cab orders locally (they are served globally now)
-
-
+- Write create message functions
 
 # DONE
 - Fix hardcoded path in fsm.py
 - Key error, line 95 in  order_callback, f = elev_copy.floor[id]
 - Change order_node name
+- Execute cab orders locally (they are served globally now)
+- Cost funtion
+    - When an elevator is Idle at a floor, it should always take new orders on that floor
+    - Check for further inefficiencies ?
+- Setup simulator

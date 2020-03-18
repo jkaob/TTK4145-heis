@@ -13,6 +13,7 @@ import socket
 import rclpy
 import distributor
 import copy
+import messages
 from status import LocalElevator
 from statusCopy import SingleElevatorCopy
 
@@ -81,24 +82,11 @@ class OrderNode(Node):
         elev.queue[msg.id] = matrix
         self.get_logger().warn('Init from id %d received!\n' %(msg.id))
 
-
-        node_msg = Status()
-        node_msg.id = elev.id
-        node_msg.behaviour = elev.behaviour[elev.id]
-        node_msg.direction = elev.direction[elev.id]
-        node_msg.floor = elev.floor[elev.id]
-        node_msg.queue = [0 for i in range(constants.N_BUTTONS * constants.N_FLOORS)];
-
-        for f in range(constants.N_FLOORS):
-            for b in range(constants.N_BUTTONS):
-                index = f*constants.N_BUTTONS + b
-                node_msg.queue[index] = int(elev.queue[elev.id][f][b])
-
+        node_msg = messages.messages_createMessage(elev, constants.MSG_NODE)
         self.node_publisher.publish(node_msg)
 
 
     def status_callback(self, msg):
-
         elev.floor[msg.id] = msg.floor
         elev.behaviour[msg.id] = msg.behaviour
         elev.direction[msg.id] = msg.direction
@@ -119,8 +107,8 @@ class OrderNode(Node):
         print(" --- \n")
 
     def order_executed_callback(self, msg):
+        self.get_logger().warn('order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
         if (msg.id != elev.id):
-            self.get_logger().warn('order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
         self.get_logger().warn("Printing all queues")
         for id in sorted(elev.queue):
@@ -162,25 +150,16 @@ class OrderNode(Node):
 
             if (elev.id == min_id):
                 fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
-                order_confirmed_msg = Order()
-                order_confirmed_msg.id = elev.id
-                order_confirmed_msg.floor = msg.floor
-                order_confirmed_msg.button = msg.button
-                ##publish order received to reset timer
+
+                order_confirmed_msg = messages.messages_createMessage(elev, constants.MSG_ORDER_CONFIRMED, msg.floor, msg.button)
                 self.order_confirmed_publisher.publish(order_confirmed_msg)
 
                 if (elev.behaviour[elev.id] == constants.DOOR_OPEN and elev.floor[elev.id] == msg.floor):
-                    order_OrderExecutedMsg          = Order()
-                    order_OrderExecutedMsg.id       = elev.id
-                    order_OrderExecutedMsg.floor    = elev.floor[elev.id]
+
+                    order_OrderExecutedMsg = messages.messages_createMessage(elev, constants.MSG_ORDER_EXECUTED)
                     self.order_executed_publisher.publish(order_OrderExecutedMsg)
 
-                status_msg = Status()
-                status_msg.id = elev.id
-                status_msg.behaviour = elev.behaviour[elev.id]
-                status_msg.direction = elev.direction[elev.id]
-                status_msg.floor = elev.floor[elev.id]
-
+                status_msg = messages.messages_createMessage(elev, constants.MSG_STATUS)
                 self.status_publisher.publish(status_msg)
 
             else:
@@ -197,11 +176,7 @@ def main(args=None):
     fsm.fsm_init(elev)
     order_node.get_logger().warn('Init complete! Id: %d\n' %(elev.id))
 
-    init_msg = Status()
-    init_msg.id = elev.id
-    init_msg.behaviour = elev.behaviour[elev.id]
-    init_msg.direction = elev.direction[elev.id]
-    init_msg.floor = elev.floor[elev.id]
+    init_msg = messages.messages_createMessage(elev, constants.MSG_INIT)
     order_node.init_publisher.publish(init_msg)
 
     rclpy.spin_once(order_node,executor=None,timeout_sec=0)
@@ -218,10 +193,8 @@ def main(args=None):
                 if(v and (v != elev.queue[elev.id][f][b])):
                     while ( fsm.driver.elev_get_button_signal(b,f) ):
                         pass
-                    order_newOrderMsg           = Order()
-                    order_newOrderMsg.id        = elev.id
-                    order_newOrderMsg.floor     = f
-                    order_newOrderMsg.button    = b
+
+                    order_newOrderMsg = messages.messages_createMessage(elev, constants.MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
 
         ## Floor sensor
@@ -229,17 +202,11 @@ def main(args=None):
         if(f != -1 and f != elev.floor[elev.id]):
             fsm.fsm_onFloorArrival(elev,elev.id,f)
             if (elev.behaviour[elev.id] == constants.DOOR_OPEN):
-                order_OrderExecutedMsg          = Order()
-                order_OrderExecutedMsg.id       = elev.id
-                order_OrderExecutedMsg.floor    = f
+
+                order_OrderExecutedMsg = messages.messages_createMessage(elev, constants.MSG_ORDER_EXECUTED)
                 order_node.order_executed_publisher.publish(order_OrderExecutedMsg)
 
-                status_msg              = Status()
-                status_msg.id           = elev.id
-                status_msg.behaviour    = elev.behaviour[elev.id]
-                status_msg.direction    = elev.direction[elev.id]
-                status_msg.floor        = elev.floor[elev.id]
-
+                status_msg = messages.messages_createMessage(elev, constants.MSG_STATUS)
                 order_node.status_publisher.publish(status_msg)
 
         ## Timers
@@ -247,12 +214,7 @@ def main(args=None):
             timer.timer_stop()
             fsm.fsm_onDoorTimeout(elev)
 
-            status_msg              = Status()
-            status_msg.id           = elev.id
-            status_msg.behaviour    = elev.behaviour[elev.id]
-            status_msg.direction    = elev.direction[elev.id]
-            status_msg.floor        = elev.floor[elev.id]
-
+            status_msg = messages.messages_createMessage(elev, constants.MSG_STATUS)
             order_node.status_publisher.publish(status_msg)
 
         for start_time in sorted(elev.unacknowledgedOrders):
