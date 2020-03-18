@@ -2,7 +2,6 @@
 ### TODO DEV ###
 - Fix lights (update all lights on status)
 - Order executed timeout (detect hardware error)
-- Execute cab orders locally (they are served globally now)
 - Test med pakketap
 - Når en heis faller av nettet, kopier køen osv.
 - Cost funtion
@@ -10,6 +9,11 @@
     - Check for further inefficiencies ?
 - Setup simulator
 - Code quality & file cleanup
+
+# UNDER WORK
+- Execute cab orders locally (they are served globally now)
+
+
 
 # DONE
 - Fix hardcoded path in fsm.py

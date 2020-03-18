@@ -121,63 +121,67 @@ class OrderNode(Node):
     def order_callback(self, msg):
         self.get_logger().info('New order from: %d\n Floor: %d\n Button: %s' %(msg.id, msg.floor, msg.button))
 
+        if (msg.button == constants.BTN_CAB):
+            fsm.fsm_onNewOrder(elev,msg.id,msg.floor,msg.button)
+            self.get_logger().info('New cab order distributed to: %s\n' %(msg.id))
+            return
+        else:
 #################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
-        min_duration = 999
-        min_id = 0
+            min_duration = 999
+            min_id = 0
 
-        #print("Før kopi")
-        # print(elev.queue[elev.id])
-        # print('\n')
-
-        elev_copy = copy.deepcopy(elev)
-
-        #print("Etter kopi")
-        # print(elev.queue[elev.id])
-        # print('\n')
-
-        for id in sorted(elev_copy.queue):
-
-            f = elev_copy.floor[id]
-            bh = elev_copy.behaviour[id]
-            dir = elev_copy.direction[id]
-            qu = elev_copy.queue[id]
-
-            single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
-
-            single_elev_copy.queue[id][2][2] = 4
-
-            # print("Single elev copy")
-            # print(single_elev_copy.queue[id])
+            #print("Før kopi")
+            # print(elev.queue[elev.id])
             # print('\n')
 
-            duration = distributor.distributor_timeToIdle(single_elev_copy)
-            if(duration < min_duration):
-                min_duration = duration
-                min_id = id
-###################################################################################
-        self.get_logger().info('New order distributed to: %s\n' %(min_id))
+            elev_copy = copy.deepcopy(elev)
 
-        if (elev.id == min_id):
-            fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
-            order_confirmed_msg = Order()
-            order_confirmed_msg.id = elev.id
-            order_confirmed_msg.floor = msg.floor
-            order_confirmed_msg.button = msg.button
-            ##publish order received to reset timer
-            self.order_confirmed_publisher.publish(order_confirmed_msg)
+            #print("Etter kopi")
+            # print(elev.queue[elev.id])
+            # print('\n')
 
-            status_msg = Status()
-            status_msg.id = elev.id
-            status_msg.behaviour = elev.behaviour[elev.id]
-            status_msg.direction = elev.direction[elev.id]
-            status_msg.floor = elev.floor[elev.id]
+            for id in sorted(elev_copy.queue):
 
-            self.status_publisher.publish(status_msg)
+                f = elev_copy.floor[id]
+                bh = elev_copy.behaviour[id]
+                dir = elev_copy.direction[id]
+                qu = elev_copy.queue[id]
 
-        else:
-            #Add to unacknowledgedOrders
-            timer.timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
+                single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
+                single_elev_copy.queue[id][2][2] = 4
 
+                # print("Single elev copy")
+                # print(single_elev_copy.queue[id])
+                # print('\n')
+
+                duration = distributor.distributor_timeToIdle(single_elev_copy)
+                self.get_logger().warn('ID: %s      Duration: %d\n' %(id, duration))
+                if(duration < min_duration):
+                    min_duration = duration
+                    min_id = id
+    ###################################################################################
+            self.get_logger().info('New hall order distributed to: %s\n' %(min_id))
+
+            if (elev.id == min_id):
+                fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
+                order_confirmed_msg = Order()
+                order_confirmed_msg.id = elev.id
+                order_confirmed_msg.floor = msg.floor
+                order_confirmed_msg.button = msg.button
+                ##publish order received to reset timer
+                self.order_confirmed_publisher.publish(order_confirmed_msg)
+
+                status_msg = Status()
+                status_msg.id = elev.id
+                status_msg.behaviour = elev.behaviour[elev.id]
+                status_msg.direction = elev.direction[elev.id]
+                status_msg.floor = elev.floor[elev.id]
+
+                self.status_publisher.publish(status_msg)
+
+            else:
+                #Add to unacknowledgedOrders
+                timer.timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
 
 
 ############### MAIN LOOP #####################

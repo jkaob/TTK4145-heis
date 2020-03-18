@@ -1,9 +1,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
 
 // Load values from a config file
-// 
+//
 //  Key-value pairs in the config file are assumed to be of the form:
 //  "--key value"
 //  Lines not starting in "--" are ignored.
@@ -32,7 +35,7 @@
 //      con_load("config.con",
 //          con_val("integer", &i, "%d")
 //          con_val("greeting", s, "%[^\n]")
-//          con_enum("enumeration", &en, 
+//          con_enum("enumeration", &en,
 //              con_match(En1)
 //              con_match(En2)
 //              con_match(En3)
@@ -54,6 +57,10 @@
             }                                               \
         }                                                   \
     } else {                                                \
+      char cwd[PATH_MAX];                                   \
+      if (getcwd(cwd, sizeof(cwd)) != NULL) {               \
+         printf("Current working dir: %s\n", cwd);          \
+      }                                                     \
         printf("Unable to open config file %s\n", file);    \
     }                                                       \
 }
@@ -76,7 +83,3 @@
     if(!strcasecmp(_val, #id)){                             \
         _v = id;                                            \
     }
-
-
-
-

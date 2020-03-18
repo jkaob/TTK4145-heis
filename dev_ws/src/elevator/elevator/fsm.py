@@ -14,7 +14,7 @@ import sys
 ###### LOAD DRIVER ########
 driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
 driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-driver.elev_init(0)
+driver.elev_init(1)
 ###########################
 
 def fsm_init(e):
