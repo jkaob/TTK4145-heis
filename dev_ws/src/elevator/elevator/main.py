@@ -30,6 +30,7 @@ import numpy as np
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 local_id = s.getsockname()[0][-3:]
+local_id = local_id.replace('.','')
 ###########################
 
 
