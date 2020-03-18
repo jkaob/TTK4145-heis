@@ -78,6 +78,7 @@ def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed fro
 def fsm_onFloorArrival(e,id,f):
     # other elevator completed
     if(id != e.id):
+
         for b in range(constants.N_BUTTONS):
             e.queue[id][f][b] = 0
         return
