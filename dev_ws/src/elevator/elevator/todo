@@ -7,10 +7,13 @@
 
 - Code quality & file cleanup
 
+- Matrise generering
+
 # UNDER WORK
-- Write create message functions
+
 
 # DONE
+- Write create message functions
 - Fix hardcoded path in fsm.py
 - Key error, line 95 in  order_callback, f = elev_copy.floor[id]
 - Change order_node name
