@@ -24,6 +24,7 @@ def fsm_init(e):
     e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
     e.behaviour[e.id]   = IDLE
     e.direction[e.id]   = DIRN_STOP
+    e.network[e.id]     = OFFLINE
     return
 
 

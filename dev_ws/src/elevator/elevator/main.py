@@ -72,7 +72,7 @@ class ElevatorNode(Node):
         elev.direction[msg.id]  = msg.direction
 
         if (msg.id not in elev.queue):  # create empty queue
-            self.get_logger().warn('Node from id %d received\n' %(msg.id))
+            self.get_logger().warn('Node from new id %d received\n' %(msg.id))
             matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
             elev.queue[msg.id] = matrix
 
@@ -80,7 +80,7 @@ class ElevatorNode(Node):
             for b in range(N_BUTTONS):
                 index = f*N_BUTTONS + b
                 elev.queue[msg.id][f][b] = msg.queue[index]
-
+                elev.queue[elev.id][f][BTN_CAB] = msg.cabqueue[f]
         return
 
     def init_callback(self,msg):
@@ -88,11 +88,13 @@ class ElevatorNode(Node):
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
-        elev.queue[msg.id]      = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
-        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
+        elev.network[msg.id]    = msg.network
+        if (msg.id not in elev.queue):
+            elev.queue[msg.id]      = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
 
+        node_msg = messages_createMessage(elev, MSG_NODE, None, None, msg.id)
+        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
         # answer new elevator with info about local node
-        node_msg = messages_createMessage(elev, MSG_NODE)
         self.node_publisher.publish(node_msg)
 
         return
@@ -102,6 +104,7 @@ class ElevatorNode(Node):
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
+        elev.network[msg.id]    = msg.network
 
         return
 
@@ -153,12 +156,14 @@ class ElevatorNode(Node):
             elev_copy = copy.deepcopy(elev)
 
             for id in sorted(elev_copy.queue):
-                f   = elev_copy.floor[id]
-                qu  = elev_copy.queue[id]
-                bh  = elev_copy.behaviour[id]
+                if (elev_copy.network[id] == OFFLINE):
+                    pass
+                floor   = elev_copy.floor[id]
+                queue  = elev_copy.queue[id]
+                behaviour  = elev_copy.behaviour[id]
                 dir = elev_copy.direction[id]
 
-                single_elev_copy = SingleElevatorCopy(id, f, bh, dir, qu)
+                single_elev_copy = SingleElevatorCopy(id, floor, behaviour, dir, queue)
                 single_elev_copy.queue[id][msg.floor][msg.button] = 1
                 duration = distributor_timeToIdle(single_elev_copy)
                 self.get_logger().warn('ID: %s  | Duration: %d\n' %(id, duration))
@@ -215,7 +220,8 @@ def main(args=None):
                 if (v and (v != elev.queue[elev.id][f][b])):
                     while (fsm.driver.elev_get_button_signal(b, f)):
                         pass
-
+                    if (elev.network[elev.id] == OFFLINE and b is not BTN_CAB):
+                        pass
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
 

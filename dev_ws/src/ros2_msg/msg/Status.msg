@@ -2,4 +2,6 @@ int32 id
 int32 behaviour
 int32 direction
 int32 floor
+int32 network
 int32[] queue
+int32[] cabqueue
