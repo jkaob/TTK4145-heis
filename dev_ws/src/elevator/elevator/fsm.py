@@ -106,6 +106,7 @@ def fsm_onDoorTimeout(e):
     bh = e.behaviour[e.id]
     if (bh == DOOR_OPEN):
         e.direction[e.id] = util.util_chooseDirection(e)
+        print(e.direction[e.id])
         driver.elev_set_door_open_lamp(0)
         driver.elev_set_motor_direction(e.direction[e.id])
 
@@ -123,16 +124,19 @@ def fsm_onMechanicalError(e):
                 continue
             e.queue[e.id][f][b] = 0
 
-    if (e.floor != N_FLOORS-1):
-        while (driver.elev_get_floor_sensor_signal() != e.floor + 1):
+    if (e.floor[e.id] != N_FLOORS-1):
+        while (driver.elev_get_floor_sensor_signal() != e.floor[e.id] + 1):
             driver.elev_set_motor_direction(DIRN_UP)
     else:
-        while (driver.elev_get_floor_sensor_signal() != e.floor - 1):
+        while (driver.elev_get_floor_sensor_signal() != e.floor[e.id] - 1):
             driver.elev_set_motor_direction(DIRN_DOWN)
 
     driver.elev_set_motor_direction(DIRN_STOP)
+    driver.elev_set_door_open_lamp(1)
+    timer_doorsStart()
     e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
-    e.behaviour[e.id]   = IDLE
+    e.behaviour[e.id]   = DOOR_OPEN
     e.direction[e.id]   = DIRN_STOP
     e.network[e.id]     = ONLINE
+    e = util.util_clearAtCurrentFloor(e)
     return
