@@ -18,6 +18,10 @@ IDLE                = 1 # Idle on floor
 DOOR_OPEN           = 2 # Doors Open  on floor
 MOVING              = 3 # Moving between floors
 
+#~ Network status
+OFFLINE             = 0
+ONLINE              = 1
+
 #~ System
 MODEL               = 0
 SIMULATOR           = 1

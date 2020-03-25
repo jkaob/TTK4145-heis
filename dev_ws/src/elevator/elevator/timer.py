@@ -53,12 +53,10 @@ def timer_executionStart():
     exec_active  = 1
     exec_endTime = time.time() + TIME_EXEC_TIMEOUT
 
-    print("exec timer started")
     return
 
 def timer_executionStop():
     global exec_active
     exec_active = 0
 
-    print("exec timer stopped")
     return
