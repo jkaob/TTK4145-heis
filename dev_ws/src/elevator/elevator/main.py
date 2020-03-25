@@ -1,10 +1,3 @@
-
-#### Add script path for ros compiled files to find them ###
-install_dir = os.path.join(os.path.dirname(__file__))
-sys.path.append(os.path.abspath(install_dir))
-############################################################
-
-
 #~ python libs
 import copy
 import numpy as np
@@ -13,6 +6,14 @@ import rclpy
 import socket
 import sys
 import time
+
+#### Add script path for ros compiled files to find them ###
+install_dir = os.path.join(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(install_dir))
+############################################################
+
+
+
 
 #~ ROS packages
 from rclpy.node   import Node
@@ -105,7 +106,7 @@ class ElevatorNode(Node):
         return
 
     def order_confirmed_callback(self, msg):
-        for (start_time in sorted(elev.unacknowledgedOrders)):
+        for start_time in sorted(elev.unacknowledgedOrders):
             id  = elev.unacknowledgedOrders[start_time][0]
             f   = elev.unacknowledgedOrders[start_time][1]
             b   = elev.unacknowledgedOrders[start_time][2]
