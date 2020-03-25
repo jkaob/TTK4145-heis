@@ -76,11 +76,17 @@ class ElevatorNode(Node):
             matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
             elev.queue[msg.id] = matrix
 
+        print ('Old cab orders\n')
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
                 index = f*N_BUTTONS + b
                 elev.queue[msg.id][f][b] = msg.queue[index]
-                elev.queue[elev.id][f][BTN_CAB] = msg.cabqueue[f]
+            if (msg.cabqueue[f]):
+                fsm_onNewOrder(elev,elev.id,f, BTN_CAB)
+            #elev.queue[elev.id][f][BTN_CAB] = msg.cabqueue[f]
+            print('Floor: %d  Value: %d'%(f,msg.cabqueue[f]))
+
+        print(elev.queue[elev.id])
         return
 
     def init_callback(self,msg):
@@ -175,7 +181,6 @@ class ElevatorNode(Node):
                 single_elev_copy = SingleElevatorCopy(id, floor, behaviour, dir, queue)
                 single_elev_copy.queue[id][msg.floor][msg.button] = 1
                 duration = distributor_timeToIdle(single_elev_copy)
-                self.get_logger().warn('ID: %s  | Duration: %d\n' %(id, duration))
 
                 if (duration < min_duration):
                     min_id = id
@@ -270,7 +275,6 @@ def main(args=None):
                 timer_orderConfirmedStop(elev, start_time)
 
         #~~~ Check if elevator has lost power or network connection ~~~#
-
         if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
             for f in range(N_FLOORS):
                 for b in range(N_BUTTONS):
