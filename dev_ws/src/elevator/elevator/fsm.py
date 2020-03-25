@@ -24,7 +24,7 @@ def fsm_init(e):
     e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
     e.behaviour[e.id]   = IDLE
     e.direction[e.id]   = DIRN_STOP
-    e.network[e.id]     = OFFLINE
+    e.network[e.id]     = ONLINE
     return
 
 
@@ -110,5 +110,5 @@ def fsm_onDoorTimeout(e):
             e.behaviour[e.id] = IDLE
         else:
             e.behaviour[e.id] = MOVING
-            timer_executionStart() # check for mechanical error 
+            timer_executionStart() # check for mechanical error
     return

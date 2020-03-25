@@ -259,7 +259,7 @@ def main(args=None):
             elev.network[elev.id] = OFFLINE
             status_msg = messages_createMessage(elev, MSG_STATUS)
             order_node.status_publisher.publish(status_msg)
-
+            order_node.get_logger().error('Mechanical error!!!')
 
         for start_time in sorted(elev.unacknowledgedOrders):
             f = elev.unacknowledgedOrders[start_time][1]
@@ -271,12 +271,12 @@ def main(args=None):
 
         #~~~ Check if elevator has lost power or network connection ~~~#
 
-        if (len(elev.queue) > 1 and len(order_node.get_node_names) == 1):
-                for f in range(N_FLOORS):
-                    for b in range(N_BUTTONS):
-                        if (b == BTN_CAB):
-                            continue
-                        elev.queue[elev.id][f][b] = 0
+        if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
+            for f in range(N_FLOORS):
+                for b in range(N_BUTTONS):
+                    if (b == BTN_CAB):
+                        continue
+                    elev.queue[elev.id][f][b] = 0
 
         else:
             nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
