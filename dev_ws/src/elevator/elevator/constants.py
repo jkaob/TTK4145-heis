@@ -22,6 +22,10 @@ MOVING              = 3 # Moving between floors
 OFFLINE             = 0
 ONLINE              = 1
 
+#~ Init mode
+RESTART             = 0
+RECONNECT           = 1
+
 #~ System
 MODEL               = 0
 SIMULATOR           = 1
