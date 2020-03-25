@@ -1,5 +1,5 @@
 import fsm
-import constants
+from constants import *
 import util
 # How to use this functions
 # When a new order is received via ROS or from your own buttons
@@ -18,24 +18,27 @@ def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
     duration = 0
     bh = e.behaviour[e.id]
 
-    if (bh == constants.IDLE):
+    if (bh == IDLE):
         e.direction[e.id] = util.util_chooseDirection(e)
-        if (e.direction[e.id] == constants.DIRN_STOP):
+        if (e.direction[e.id] == DIRN_STOP):
             return duration
 
-    elif (bh == constants.MOVING):
-        duration += constants.TIME_BETWEEN_FLOORS/2
+    elif (bh == MOVING):
+        duration += TIME_BETWEEN_FLOORS/2
         e.floor[e.id] += e.direction[e.id]
 
-    elif (bh == constants.DOOR_OPEN):
-        duration -= constants.TIME_DOOR_OPEN/2
+    elif (bh == DOOR_OPEN):
+        duration -= TIME_DOOR_OPEN/2
 
     while (1):
         if (util.util_shouldStop(e)):
             e = util.util_clearAtCurrentFloor(e)
-            duration += constants.TIME_DOOR_OPEN
+            duration += TIME_DOOR_OPEN
             e.direction[e.id] = util.util_chooseDirection(e)
-            if (e.direction[e.id] == constants.DIRN_STOP):
+            if (e.direction[e.id] == DIRN_STOP):
                 return duration
+
         e.floor[e.id] += e.direction[e.id]
-        duration += constants.TIME_BETWEEN_FLOORS
+        duration += TIME_BETWEEN_FLOORS
+
+    return

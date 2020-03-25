@@ -1,4 +1,4 @@
-import constants
+from constants import *
 
 
 class SingleElevatorCopy:

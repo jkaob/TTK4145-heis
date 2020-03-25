@@ -24,11 +24,11 @@ class OrderPublisher(Node):
         super().__init__('order_publisher')
         #self.publisher_ = self.create_publisher(String, 'topic', 10)
         self.pubber = self.create_publisher(Order, 'orders', 10)
-        timer_period = 0.5  # seconds
-        #self.timer = self.create_timer(timer_period, self.timer_callback)
+        period = 0.5  # seconds
+        #self.timer = self.create_timer(period, self.callback)
         #self.i = 0
 
-    #def timer_callback(self):
+    #def callback(self):
         # msg = MyMsg()
         # #msg.data = 'Hello World: %d' % self.i
         # #self.publisher_.publish(msg)
