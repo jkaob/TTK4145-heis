@@ -214,7 +214,7 @@ def main(args=None):
                 v = fsm.driver.elev_get_button_signal(b, f)
                 if (v and (v != elev.queue[elev.id][f][b])):
                     while (fsm.driver.elev_get_button_signal(b, f)):
-                        pass
+                        pass    # sjekk om dette kan gjøres bedre
 
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
@@ -231,17 +231,21 @@ def main(args=None):
                 order_node.status_publisher.publish(status_msg)
 
         ## Timers
-        if (timer_timedOut()):
-            timer_stop()
+        if (timer_doorsTimeout()):
+            timer_doorsStop()
             fsm.fsm_onDoorTimeout(elev)
 
             status_msg = messages_createMessage(elev, MSG_STATUS)
             order_node.status_publisher.publish(status_msg)
 
+        if (timer_executionTimeout()): # mechanical error
+            timer_executionStop()
+
+
         for start_time in sorted(elev.unacknowledgedOrders):
             f = elev.unacknowledgedOrders[start_time][1]
             b = elev.unacknowledgedOrders[start_time][2]
-            if (timer_orderConfirmedTimeout(start_time)):
+            if (timer_orderConfirmedTimeout(start_time)): # order not confirmed
                 order_node.get_logger().error('Order Confirmation Timed Out!')
                 fsm.fsm_onNewOrder(elev,elev.id,f,b)
                 timer_orderConfirmedStop(elev, start_time)
