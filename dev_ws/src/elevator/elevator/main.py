@@ -260,6 +260,7 @@ def main(args=None):
             order_node.status_publisher.publish(status_msg)
 
         if (timer_executionTimeout()):  # mechanical error
+            print('Execution timeout')
             timer_executionStop()
             elev.network[elev.id] = OFFLINE
             status_msg = messages_createMessage(elev, MSG_STATUS)

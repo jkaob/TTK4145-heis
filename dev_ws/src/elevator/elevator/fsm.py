@@ -72,6 +72,7 @@ def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed fro
             e.direction[e.id] = util.util_chooseDirection(e)
             driver.elev_set_motor_direction(e.direction[e.id])
             e.behaviour[e.id] = MOVING
+            timer_executionStart() # check for mechanical error
 
     fsm_setAllLights(e)
 
@@ -96,6 +97,8 @@ def fsm_onFloorArrival(e,id,f):
             e = util.util_clearAtCurrentFloor(e)
             fsm_setAllLights(e)
             e.behaviour[e.id] = DOOR_OPEN
+        else:
+            timer_executionStart()
 
     return
 
