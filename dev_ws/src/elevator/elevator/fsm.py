@@ -115,3 +115,24 @@ def fsm_onDoorTimeout(e):
             e.behaviour[e.id] = MOVING
             timer_executionStart() # check for mechanical error
     return
+
+def fsm_onMechanicalError(e):
+    for f in range(N_FLOORS):
+        for b in range(N_BUTTONS):
+            if (b == BTN_CAB):
+                continue
+            e.queue[e.id][f][b] = 0
+
+    if (e.floor != N_FLOORS-1):
+        while (driver.elev_get_floor_sensor_signal() != e.floor + 1):
+            driver.elev_set_motor_direction(DIRN_UP)
+    else:
+        while (driver.elev_get_floor_sensor_signal() != e.floor - 1):
+            driver.elev_set_motor_direction(DIRN_DOWN)
+
+    driver.elev_set_motor_direction(DIRN_STOP)
+    e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
+    e.behaviour[e.id]   = IDLE
+    e.direction[e.id]   = DIRN_STOP
+    e.network[e.id]     = ONLINE
+    return

@@ -67,40 +67,38 @@ class ElevatorNode(Node):
 
   #~~~ Callback functions ~~~#
     def node_callback(self,msg):
+        if (msg.id == elev.id):
+            return
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
-        if (msg.id not in elev.queue):  # create empty queue
-            self.get_logger().warn('Node from new id %d received\n' %(msg.id))
-            matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
-            elev.queue[msg.id] = matrix
 
-        print ('Old cab orders\n')
+        if (msg.id not in elev.queue):
+            elev.queue[msg.id] = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
+
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                index = f*N_BUTTONS + b
-                elev.queue[msg.id][f][b] = msg.queue[index]
-            if (msg.cabqueue[f]):
+                ind = f*N_BUTTONS + b
+                elev.queue[msg.id][f][b] = msg.queue[ind]
+            if (msg.initmode == RESTART and cabqueue[f] == 1 and msg.knownid == elev.id):
                 fsm_onNewOrder(elev,elev.id,f, BTN_CAB)
-            #elev.queue[elev.id][f][BTN_CAB] = msg.cabqueue[f]
-            print('Floor: %d  Value: %d'%(f,msg.cabqueue[f]))
 
-        print(elev.queue[elev.id])
         return
 
     def init_callback(self,msg):
-        # add the new elevator to local node
+        if (msg.id == elev.id):
+            return
+        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
-        if (msg.id not in elev.queue):
-            elev.queue[msg.id]      = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
 
-        node_msg = messages_createMessage(elev, MSG_NODE, None, None, msg.id)
-        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
-        # answer new elevator with info about local node
+        if (msg.initmode == RECONNECT or msg.id not in elev.queue):
+                elev.queue[msg.id]  = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
+
+        node_msg = messages_createMessage(elev, MSG_NODE, None, None, msg.id, msg.initmode)
         self.node_publisher.publish(node_msg)
 
         return
@@ -217,7 +215,7 @@ def main(args=None):
     fsm.fsm_init(elev)
     order_node.get_logger().warn('Init complete! ID: %d\n' %(elev.id))
 
-    init_msg = messages_createMessage(elev, MSG_INIT)
+    init_msg = messages_createMessage(elev, MSG_INIT, None, None, None, RESTART)
     order_node.init_publisher.publish(init_msg)
 
     rclpy.spin_once(order_node,executor=None,timeout_sec=0)
@@ -251,22 +249,27 @@ def main(args=None):
                 status_msg = messages_createMessage(elev, MSG_STATUS)
                 order_node.status_publisher.publish(status_msg)
 
-        ## Timers
-        if (timer_doorsTimeout()):      # fsm doors closing
+        #~~~ Door timer ~~~#
+        if (timer_doorsTimeout()):
             timer_doorsStop()
             fsm.fsm_onDoorTimeout(elev)
 
             status_msg = messages_createMessage(elev, MSG_STATUS)
             order_node.status_publisher.publish(status_msg)
 
-        if (timer_executionTimeout()):  # mechanical error
-            print('Execution timeout')
+        #~~~ Mechanical error ~~~#
+        if (timer_executionTimeout()):
+            order_node.get_logger().error('Mechanical error!')
             timer_executionStop()
-            elev.network[elev.id] = OFFLINE
+            elev.network[elev.id]   = OFFLINE
             status_msg = messages_createMessage(elev, MSG_STATUS)
             order_node.status_publisher.publish(status_msg)
-            order_node.get_logger().error('Mechanical error!!!')
+            fsm.fsm_onMechanicalError(elev)
+            init_msg = messages_createMessage(elev, MSG_INIT, None, None, None, RECONNECT)
+            order_node.init_publisher.publish(init_msg)
 
+
+        #~~~ Order not confirmed ~~~#
         for start_time in sorted(elev.unacknowledgedOrders):
             f = elev.unacknowledgedOrders[start_time][1]
             b = elev.unacknowledgedOrders[start_time][2]
