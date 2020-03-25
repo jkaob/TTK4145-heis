@@ -45,7 +45,7 @@ elev = LocalElevator(int(local_id))
 class ElevatorNode(Node):
 
     def __init__(self):
-        super().__init__(str(local_id))
+        super().__init__('elev_node_'+str(local_id))
 
         #~Subscribers for listening to topics
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
@@ -110,9 +110,9 @@ class ElevatorNode(Node):
             for f in range(N_FLOORS):
                 for b in range(N_BUTTONS):
                     if (b == BTN_CAB or elev.queue[msg.id][f][b] == 0):
-                        pass
+                        continue
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-                    order_node.order_publisher.publish(order_newOrderMsg)
+                    self.order_publisher.publish(order_newOrderMsg)
                     elev.queue[msg.id][f][b] = 0
 
         return
@@ -166,7 +166,7 @@ class ElevatorNode(Node):
 
             for id in sorted(elev_copy.queue):
                 if (elev_copy.network[id] == OFFLINE):
-                    pass
+                    continue
                 floor   = elev_copy.floor[id]
                 queue  = elev_copy.queue[id]
                 behaviour  = elev_copy.behaviour[id]
@@ -231,7 +231,7 @@ def main(args=None):
                         pass ## sjekk om dette kan gjøres bedre
 
                     if (elev.network[elev.id] == OFFLINE and b is not BTN_CAB):
-                        pass
+                        continue
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
 
@@ -275,17 +275,18 @@ def main(args=None):
                 for f in range(N_FLOORS):
                     for b in range(N_BUTTONS):
                         if (b == BTN_CAB):
-                            pass
+                            continue
                         elev.queue[elev.id][f][b] = 0
 
         else:
+            nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
             for id in sorted(elev.queue):
-                if (str(id) not in order_node.get_node_names() and elev.network[id] is not OFFLINE):
+                if (str(id) not in nodes_online and elev.network[id] is ONLINE):
                     elev.network[id] = OFFLINE
                     for f in range(N_FLOORS):
                         for b in range(N_BUTTONS):
                             if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-                                pass
+                                continue
                             order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                             order_node.order_publisher.publish(order_newOrderMsg)
                             elev.queue[id][f][b] = 0
