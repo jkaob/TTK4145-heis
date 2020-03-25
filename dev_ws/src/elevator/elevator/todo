@@ -10,7 +10,7 @@
 - Matrise generering
 
 # UNDER WORK
-
+- Detektere om denne heisen har mistet nett (ping google?), begynt main.py linje 278
 
 # DONE
 - Write create message functions

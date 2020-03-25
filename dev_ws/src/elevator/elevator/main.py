@@ -76,7 +76,7 @@ class ElevatorNode(Node):
             matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
             elev.queue[msg.id] = matrix
 
-        print ('Old cab orders\n')
+        self.get_logger().warn('Node id %d reconnected!\n' %(msg.id))
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
                 index = f*N_BUTTONS + b
@@ -84,7 +84,6 @@ class ElevatorNode(Node):
             if (msg.cabqueue[f]):
                 fsm_onNewOrder(elev,elev.id,f, BTN_CAB)
             #elev.queue[elev.id][f][BTN_CAB] = msg.cabqueue[f]
-            print('Floor: %d  Value: %d'%(f,msg.cabqueue[f]))
 
         print(elev.queue[elev.id])
         return
@@ -235,7 +234,8 @@ def main(args=None):
                     while (fsm.driver.elev_get_button_signal(b, f)):
                         pass ## sjekk om dette kan gjøres bedre
 
-                    if (elev.network[elev.id] == OFFLINE and b is not BTN_CAB):
+                    if (elev.network[elev.id] == OFFLINE and b == BTN_CAB):
+                        fsm.fsm_onNewOrder(elev, elev.id, f, b)
                         continue
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
@@ -276,7 +276,14 @@ def main(args=None):
                 timer_orderConfirmedStop(elev, start_time)
 
         #~~~ Check if elevator has lost power or network connection ~~~#
-        if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
+        #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #try:
+        #    s.connect(("8.8.8.8", 80))
+        #except:
+        #    print("OFFLINE")
+        if (len(elev.queue) > 1 and len(order_node.get_node_names()[:-1]) == 1): #This elev is offline
+            elev.network[elev.id] = OFFLINE
+            #print("OFFLINE!!")
             for f in range(N_FLOORS):
                 for b in range(N_BUTTONS):
                     if (b == BTN_CAB):
@@ -286,7 +293,7 @@ def main(args=None):
         else:
             nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
             for id in sorted(elev.queue):
-                if (str(id) not in nodes_online and elev.network[id] is ONLINE):
+                if (str(id) not in nodes_online and elev.network[id] is ONLINE):  #Other elev is offline
                     elev.network[id] = OFFLINE
                     for f in range(N_FLOORS):
                         for b in range(N_BUTTONS):
