@@ -45,7 +45,7 @@ elev = LocalElevator(int(local_id))
 class ElevatorNode(Node):
 
     def __init__(self):
-        super().__init__('order_node_' + str(local_id))
+        super().__init__(str(local_id))
 
         #~Subscribers for listening to topics
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
@@ -70,7 +70,7 @@ class ElevatorNode(Node):
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
-
+        elev.network[msg.id]    = msg.network
         if (msg.id not in elev.queue):  # create empty queue
             self.get_logger().warn('Node from new id %d received\n' %(msg.id))
             matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
@@ -105,6 +105,15 @@ class ElevatorNode(Node):
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
+
+        if (msg.network == OFFLINE):
+            for f in range(N_FLOORS):
+                for b in range(N_BUTTONS):
+                    if (b == BTN_CAB or elev.queue[msg.id][f][b] == 0):
+                        pass
+                    order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                    order_node.order_publisher.publish(order_newOrderMsg)
+                    elev.queue[msg.id][f][b] = 0
 
         return
 
@@ -213,7 +222,7 @@ def main(args=None):
     while (rclpy.ok()):
         rclpy.spin_once(order_node,executor=None,timeout_sec=0)
 
-        ## Request button
+        #~~~ Check for new button push ~~~#
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
                 v = fsm.driver.elev_get_button_signal(b, f)
@@ -225,7 +234,7 @@ def main(args=None):
                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
 
-        ## Floor sensor
+        #~~~ Check floor sensors ~~~#
         f = fsm.driver.elev_get_floor_sensor_signal()
         if ((f != -1) and (f != elev.floor[elev.id])):
             fsm.fsm_onFloorArrival(elev, elev.id, f)
@@ -236,7 +245,7 @@ def main(args=None):
                 status_msg = messages_createMessage(elev, MSG_STATUS)
                 order_node.status_publisher.publish(status_msg)
 
-        ## Timers
+        #~~~ Check for timeouts ~~~#
         if (timer_timedOut()):
             timer_stop()
             fsm.fsm_onDoorTimeout(elev)
@@ -252,7 +261,28 @@ def main(args=None):
                 fsm.fsm_onNewOrder(elev,elev.id,f,b)
                 timer_orderConfirmedStop(elev, start_time)
 
-        ##Stop button
+        #~~~ Check if elevator has lost power or network connection ~~~#
+
+        if (len(elev.queue) > 1 and len(order_node.get_node_names) == 1):
+                for f in range(N_FLOORS):
+                    for b in range(N_BUTTONS):
+                        if (b == BTN_CAB):
+                            pass
+                        elev.queue[elev.id][f][b] = 0
+
+        else:
+            for id in sorted(elev.queue):
+                if (str(id) not in order_node.get_node_names() and elev.network[id] is not OFFLINE):
+                    elev.network[id] = OFFLINE
+                    for f in range(N_FLOORS):
+                        for b in range(N_BUTTONS):
+                            if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+                                pass
+                            order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                            order_node.order_publisher.publish(order_newOrderMsg)
+                            elev.queue[id][f][b] = 0
+
+        #~~~ Check stop button ~~~#
         if (fsm.driver.elev_get_stop_signal()):
             fsm.driver.elev_set_motor_direction(DIRN_STOP)
             break
