@@ -55,7 +55,7 @@ def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed fro
 
     if (bh == DOOR_OPEN):
         if (e.floor[e.id] == f):
-            timer_start()
+            timer_doorsStart()
         else:
             e.queue[e.id][f][b] = 1
 
@@ -65,7 +65,7 @@ def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed fro
     elif (bh == IDLE):
         if (e.floor[e.id] == f):
             driver.elev_set_door_open_lamp(1)
-            timer_start()
+            timer_doorsStart()
             e.behaviour[e.id] = DOOR_OPEN
         else:
             e.queue[e.id][f][b] = 1
@@ -80,10 +80,11 @@ def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed fro
 def fsm_onFloorArrival(e,id,f):
     # other elevator completed
     if (id != e.id):
-
         for b in range(N_BUTTONS):
             e.queue[id][f][b] = 0
         return
+
+    timer_executionStop() # no mechanical error
 
     e.floor[e.id] = f
     driver.elev_set_floor_indicator(f)
@@ -91,7 +92,7 @@ def fsm_onFloorArrival(e,id,f):
         if (util.util_shouldStop(e)):
             driver.elev_set_motor_direction(DIRN_STOP)
             driver.elev_set_door_open_lamp(1)
-            timer_start()
+            timer_doorsStart()
             e = util.util_clearAtCurrentFloor(e)
             fsm_setAllLights(e)
             e.behaviour[e.id] = DOOR_OPEN
@@ -109,4 +110,5 @@ def fsm_onDoorTimeout(e):
             e.behaviour[e.id] = IDLE
         else:
             e.behaviour[e.id] = MOVING
+            timer_executionStart() # check for mechanical error 
     return
