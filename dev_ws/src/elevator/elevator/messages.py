@@ -63,7 +63,7 @@ from constants import *
 
 ## THESE ARE THE RIGHT ONES:
 
-def msg_create_initMessage(elev, initmode=None):
+def msg_create_initMessage(elev, initmode):
         msg           = Init()
         msg.id        = elev.id
         msg.floor     = elev.floor[elev.id]
@@ -73,14 +73,14 @@ def msg_create_initMessage(elev, initmode=None):
         msg.initmode  = initmode
         return  msg
 
-def msg_create_newOrderMessage(elev, floor=None, btn=None):
+def msg_create_newOrderMessage(elev, floor, btn):
         msg           = Order()
         msg.id        = elev.id
         msg.floor     = floor
         msg.button    = btn
         return msg
 
-def msg_create_orderConfirmedMessage(elev, floor=None, btn=None):
+def msg_create_orderConfirmedMessage(elev, floor, btn):
         msg           = OrderConfirmed()
         msg.id        = elev.id
         msg.floor     = floor
@@ -102,7 +102,7 @@ def msg_create_statusMessage(elev):
         msg.network   = elev.network[elev.id]
         return msg
 
-def msg_create_nodeMessage(elev, knownID=None, initmode=None):
+def msg_create_nodeMessage(elev, knownID, initmode):
         msg           = Node()
         msg.id        = elev.id
         msg.behaviour = elev.behaviour[elev.id]

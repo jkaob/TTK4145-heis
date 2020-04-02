@@ -3,11 +3,11 @@
 - Fix lights (update all lights on status)
 - Order executed timeout (detect hardware error)
 - Test med pakketap
-- Når en heis faller av nettet, kopier køen osv.
-
+- Når en heis faller av nettet, kopier køen osv
+- Matrise generering
 - Code quality & file cleanup
 
-- Matrise generering
+- Cab orders when offline 
 
 # UNDER WORK
 - Detektere om denne heisen har mistet nett (ping google?), begynt main.py linje 278
