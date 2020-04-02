@@ -16,123 +16,126 @@ driver = cdll.LoadLibrary(os.path.abspath(driver_path))
 driver.elev_init(ELEV_MODE) #Simulator / Physical model
 ###########################
 
-def fsm_init(e):
+def fsm_init(elev):
     while (driver.elev_get_floor_sensor_signal() == -1):
         driver.elev_set_motor_direction(DIRN_DOWN)
 
     driver.elev_set_motor_direction(DIRN_STOP)
-    e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
-    e.behaviour[e.id]   = IDLE
-    e.direction[e.id]   = DIRN_STOP
-    e.network[e.id]     = ONLINE
+    elev.floor[elev.id]       = driver.elev_get_floor_sensor_signal()
+    elev.behaviour[elev.id]   = IDLE
+    elev.direction[elev.id]   = DIRN_STOP
+    elev.network[elev.id]     = ONLINE
     return
 
 
 #Denne burde kanskje flyttes til et annet sted? Kanskje rename util til utils, og legge til denne der?
-def fsm_setAllLights(e): #Call this function when new order is done, as callback, or distributed
+def fsm_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
     for f in range(N_FLOORS):
         for b in range(N_BUTTONS):
             #for id in id_list: - Implementer dette
-                if (e.queue[e.id][f][b]):
+                if (elev.queue[elev.id][f][b]):
                     driver.elev_set_button_lamp(b, f, 1)
                     break
                 driver.elev_set_button_lamp(b, f, 0)
     return
 
-def fsm_onInitBetweenFloors(e):
+def fsm_onInitBetweenFloors(elev):
+
     driver.elev_set_motor_direction(DIRN_DOWN)
-    e.direction[e.id] = DIRN_DOWN
-    e.behaviour[e.id] = MOVING
+    elev.direction[elev.id] = DIRN_DOWN
+    elev.behaviour[elev.id] = MOVING
     return
 
-def fsm_onNewOrder(e,id,f,b): #When a new order is distributed and confirmed from the cost function
-    if (id != e.id):
-        e.queue[id][f][b] = 1
-        fsm_setAllLights(e)
+def fsm_onNewOrder(elev, id, floor, btn): #When a new order is distributed and confirmed from the cost function
+    if (id != elev.id):
+        elev.queue[id][floor][btn] = 1
+        fsm_setAllLights(elev)
         return
 
-    bh = e.behaviour[e.id]
+    bh = elev.behaviour[elev.id]
 
     if (bh == DOOR_OPEN):
-        if (e.floor[e.id] == f):
+        if (elev.floor[elev.id] == floor):
             timer_doorsStart()
         else:
-            e.queue[e.id][f][b] = 1
+            elev.queue[elev.id][floor][btn] = 1
 
     elif (bh == MOVING):
-        e.queue[e.id][f][b] = 1
+        elev.queue[elev.id][floor][btn] = 1
 
     elif (bh == IDLE):
-        if (e.floor[e.id] == f):
+        if (elev.floor[elev.id] == floor):
             driver.elev_set_door_open_lamp(1)
             timer_doorsStart()
-            e.behaviour[e.id] = DOOR_OPEN
+            elev.behaviour[elev.id] = DOOR_OPEN
         else:
-            e.queue[e.id][f][b] = 1
-            e.direction[e.id] = util.util_chooseDirection(e)
-            driver.elev_set_motor_direction(e.direction[e.id])
-            e.behaviour[e.id] = MOVING
+            elev.queue[elev.id][floor][btn] = 1
+            elev.direction[elev.id] = util.util_chooseDirection(elev)
+            driver.elev_set_motor_direction(elev.direction[elev.id])
+            elev.behaviour[elev.id] = MOVING
             timer_executionStart() # check for mechanical error
 
-    fsm_setAllLights(e)
+    fsm_setAllLights(elev)
 
     return
 
-def fsm_onFloorArrival(e,id,f):
+def fsm_onFloorArrival(elev, id, floor):
     # other elevator completed
-    if (id != e.id):
+    if (id != elev.id):
         for b in range(N_BUTTONS):
-            e.queue[id][f][b] = 0
+            elev.queue[id][floor][b] = 0
         return
 
     timer_executionStop() # no mechanical error
 
-    e.floor[e.id] = f
-    driver.elev_set_floor_indicator(f)
-    if (e.behaviour[e.id] == MOVING):
-        if (util.util_shouldStop(e)):
+    elev.floor[elev.id] = floor
+    driver.elev_set_floor_indicator(floor)
+    if (elev.behaviour[elev.id] == MOVING):
+        if (util.util_shouldStop(elev)):
             driver.elev_set_motor_direction(DIRN_STOP)
             driver.elev_set_door_open_lamp(1)
             timer_doorsStart()
-            e = util.util_clearAtCurrentFloor(e)
-            fsm_setAllLights(e)
-            e.behaviour[e.id] = DOOR_OPEN
+            elev = util.util_clearAtCurrentFloor(elev)
+            fsm_setAllLights(elev)
+            elev.behaviour[elev.id] = DOOR_OPEN
         else:
             timer_executionStart()
 
     return
 
-def fsm_onDoorTimeout(e):
-    bh = e.behaviour[e.id]
+def fsm_onDoorTimeout(elev):
+    bh = elev.behaviour[elev.id]
     if (bh == DOOR_OPEN):
-        e.direction[e.id] = util.util_chooseDirection(e)
+        elev.direction[elev.id] = util.util_chooseDirection(elev)
         driver.elev_set_door_open_lamp(0)
-        driver.elev_set_motor_direction(e.direction[e.id])
+        driver.elev_set_motor_direction(elev.direction[elev.id])
 
-        if (e.direction[e.id] == DIRN_STOP):
-            e.behaviour[e.id] = IDLE
+        if (elev.direction[elev.id] == DIRN_STOP):
+            elev.behaviour[elev.id] = IDLE
         else:
-            e.behaviour[e.id] = MOVING
+            elev.behaviour[elev.id] = MOVING
             timer_executionStart() # check for mechanical error
     return
 
-def fsm_onMechanicalError(e):
+def fsm_onMechanicalError(elev):
     for f in range(N_FLOORS):
         for b in range(N_BUTTONS):
             if (b == BTN_CAB):
                 continue
-            e.queue[e.id][f][b] = 0
+            elev.queue[elev.id][f][b] = 0
 
-    if (e.floor != N_FLOORS-1):
-        while (driver.elev_get_floor_sensor_signal() != e.floor + 1):
+    if (elev.floor != N_FLOORS-1):
+        while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] + 1):
             driver.elev_set_motor_direction(DIRN_UP)
     else:
-        while (driver.elev_get_floor_sensor_signal() != e.floor - 1):
+        while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] - 1):
             driver.elev_set_motor_direction(DIRN_DOWN)
 
     driver.elev_set_motor_direction(DIRN_STOP)
-    e.floor[e.id]       = driver.elev_get_floor_sensor_signal()
-    e.behaviour[e.id]   = IDLE
-    e.direction[e.id]   = DIRN_STOP
-    e.network[e.id]     = ONLINE
+    driver.elev_set_door_open_lamp(1)
+    timer_doorsStart()
+    elev.floor[elev.id]       = driver.elev_get_floor_sensor_signal()
+    elev.behaviour[elev.id]   = DOOR_OPEN
+    elev.direction[elev.id]   = DIRN_STOP
+    elev.network[elev.id]     = ONLINE
     return

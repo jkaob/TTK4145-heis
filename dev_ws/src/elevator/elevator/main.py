@@ -66,9 +66,10 @@ class ElevatorNode(Node):
         return
 
   #~~~ Callback functions ~~~#
-    def node_callback(self,msg):
+    def node_callback(self, msg):
         if (msg.id == elev.id):
             return
+        self.get_logger().warn('Node from id %d received!\n' %(msg.id))
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
@@ -79,14 +80,13 @@ class ElevatorNode(Node):
 
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                ind = f*N_BUTTONS + b
-                elev.queue[msg.id][f][b] = msg.queue[ind]
-            if (msg.initmode == RESTART and cabqueue[f] == 1 and msg.knownid == elev.id):
-                fsm_onNewOrder(elev,elev.id,f, BTN_CAB)
+                elev.queue[msg.id][f][b] = msg.queue[f*N_BUTTONS + b] #Mapping 1D -> 2D array
+            if (msg.initmode == RESTART and msg.cabqueue[f] == 1 and msg.knownid == elev.id):
+                fsm_onNewOrder(elev, elev.id, f, BTN_CAB)
 
         return
 
-    def init_callback(self,msg):
+    def init_callback(self, msg):
         if (msg.id == elev.id):
             return
         self.get_logger().warn('Init from id %d received!\n' %(msg.id))
@@ -98,7 +98,7 @@ class ElevatorNode(Node):
         if (msg.initmode == RECONNECT or msg.id not in elev.queue):
                 elev.queue[msg.id]  = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
 
-        node_msg = messages_createMessage(elev, MSG_NODE, None, None, msg.id, msg.initmode)
+        node_msg = msg_create_nodeMessage(elev, msg.id, msg.initmode)
         self.node_publisher.publish(node_msg)
 
         return
@@ -115,7 +115,7 @@ class ElevatorNode(Node):
                 for b in range(N_BUTTONS):
                     if (b == BTN_CAB or elev.queue[msg.id][f][b] == 0):
                         continue
-                    order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                    order_newOrderMsg = msg_create_newOrderMessage(elev, f, b)
                     self.order_publisher.publish(order_newOrderMsg)
                     elev.queue[msg.id][f][b] = 0
 
@@ -123,13 +123,13 @@ class ElevatorNode(Node):
 
     def order_confirmed_callback(self, msg):
         for start_time in sorted(elev.unacknowledgedOrders):
-            id  = elev.unacknowledgedOrders[start_time][0]
-            f   = elev.unacknowledgedOrders[start_time][1]
-            b   = elev.unacknowledgedOrders[start_time][2]
+            id      = elev.unacknowledgedOrders[start_time][0]
+            floor   = elev.unacknowledgedOrders[start_time][1]
+            btn     = elev.unacknowledgedOrders[start_time][2]
 
-            if (msg.id == id and msg.floor == f and msg.button == b):
-                timer_orderConfirmedStop(elev,start_time)
-                fsm.fsm_onNewOrder(elev,id,f,b)
+            if (msg.id == id and msg.floor == floor and msg.button == btn):
+                timer_orderConfirmedStop(elev, start_time)
+                fsm.fsm_onNewOrder(elev, id, floor, btn)
 
         #Print all queues
         self.get_logger().warn("Printing all queues")
@@ -163,7 +163,7 @@ class ElevatorNode(Node):
 
         else:
 #################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
-            min_id = 0          # ID of elevator with the least cost
+            min_id = elev.id          # ID of elevator with the least cost
             min_duration = 999  # Time duration of elev with least cost
 
             elev_copy = copy.deepcopy(elev)
@@ -171,10 +171,10 @@ class ElevatorNode(Node):
             for id in sorted(elev_copy.queue):
                 if (elev_copy.network[id] == OFFLINE):
                     continue
-                floor   = elev_copy.floor[id]
-                queue  = elev_copy.queue[id]
-                behaviour  = elev_copy.behaviour[id]
-                dir = elev_copy.direction[id]
+                floor       = elev_copy.floor[id]
+                queue       = elev_copy.queue[id]
+                dir         = elev_copy.direction[id]
+                behaviour   = elev_copy.behaviour[id]
 
                 single_elev_copy = SingleElevatorCopy(id, floor, behaviour, dir, queue)
                 single_elev_copy.queue[id][msg.floor][msg.button] = 1
@@ -189,14 +189,14 @@ class ElevatorNode(Node):
 
             if (elev.id == min_id):
                 fsm.fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
-                order_confirmed_msg = messages_createMessage(elev, MSG_ORDER_CONFIRMED, msg.floor, msg.button)
+                order_confirmed_msg = msg_create_orderConfirmedMessage(elev, msg.floor, msg.button)
                 self.order_confirmed_publisher.publish(order_confirmed_msg)
 
                 if (elev.behaviour[elev.id] == DOOR_OPEN and elev.floor[elev.id] == msg.floor):
-                    order_OrderExecutedMsg = messages_createMessage(elev, MSG_ORDER_EXECUTED)
-                    self.order_executed_publisher.publish(order_OrderExecutedMsg)
+                    order_orderExecutedMsg = msg_create_orderExecutedMessage(elev)
+                    self.order_executed_publisher.publish(order_orderExecutedMsg)
 
-                status_msg = messages_createMessage(elev, MSG_STATUS)
+                status_msg = msg_create_statusMessage(elev)
                 self.status_publisher.publish(status_msg)
 
             else:
@@ -215,7 +215,7 @@ def main(args=None):
     fsm.fsm_init(elev)
     order_node.get_logger().warn('Init complete! ID: %d\n' %(elev.id))
 
-    init_msg = messages_createMessage(elev, MSG_INIT, None, None, None, RESTART)
+    init_msg = msg_create_initMessage(elev, RESTART)
     order_node.init_publisher.publish(init_msg)
 
     rclpy.spin_once(order_node,executor=None,timeout_sec=0)
@@ -235,7 +235,7 @@ def main(args=None):
 
                     if (elev.network[elev.id] == OFFLINE and b is not BTN_CAB):
                         continue
-                    order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                    order_newOrderMsg = msg_create_newOrderMessage(elev, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
 
         #~~~ Check floor sensors ~~~#
@@ -244,9 +244,9 @@ def main(args=None):
             fsm.fsm_onFloorArrival(elev, elev.id, f)
 
             if (elev.behaviour[elev.id] == DOOR_OPEN):
-                order_OrderExecutedMsg = messages_createMessage(elev, MSG_ORDER_EXECUTED)
-                order_node.order_executed_publisher.publish(order_OrderExecutedMsg)
-                status_msg = messages_createMessage(elev, MSG_STATUS)
+                order_orderExecutedMsg = msg_create_orderExecutedMessage(elev)
+                order_node.order_executed_publisher.publish(order_orderExecutedMsg)
+                status_msg = msg_create_statusMessage(elev)
                 order_node.status_publisher.publish(status_msg)
 
         #~~~ Door timer ~~~#
@@ -254,7 +254,7 @@ def main(args=None):
             timer_doorsStop()
             fsm.fsm_onDoorTimeout(elev)
 
-            status_msg = messages_createMessage(elev, MSG_STATUS)
+            status_msg = msg_create_statusMessage(elev)
             order_node.status_publisher.publish(status_msg)
 
         #~~~ Mechanical error ~~~#
@@ -262,10 +262,12 @@ def main(args=None):
             order_node.get_logger().error('Mechanical error!')
             timer_executionStop()
             elev.network[elev.id]   = OFFLINE
-            status_msg = messages_createMessage(elev, MSG_STATUS)
+
+            status_msg = msg_create_statusMessage(elev)
             order_node.status_publisher.publish(status_msg)
             fsm.fsm_onMechanicalError(elev)
-            init_msg = messages_createMessage(elev, MSG_INIT, None, None, None, RECONNECT)
+
+            init_msg = msg_create_initMessage(elev, RECONNECT)
             order_node.init_publisher.publish(init_msg)
 
 
@@ -278,26 +280,26 @@ def main(args=None):
                 fsm.fsm_onNewOrder(elev,elev.id,f,b)
                 timer_orderConfirmedStop(elev, start_time)
 
-        #~~~ Check if elevator has lost power or network connection ~~~#
-        if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
-            for f in range(N_FLOORS):
-                for b in range(N_BUTTONS):
-                    if (b == BTN_CAB):
-                        continue
-                    elev.queue[elev.id][f][b] = 0
-
-        else:
-            nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-            for id in sorted(elev.queue):
-                if (str(id) not in nodes_online and elev.network[id] is ONLINE):
-                    elev.network[id] = OFFLINE
-                    for f in range(N_FLOORS):
-                        for b in range(N_BUTTONS):
-                            if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-                                continue
-                            order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-                            order_node.order_publisher.publish(order_newOrderMsg)
-                            elev.queue[id][f][b] = 0
+        # #~~~ Check if elevator has lost power or network connection ~~~#
+        # if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
+        #     for f in range(N_FLOORS):
+        #         for b in range(N_BUTTONS):
+        #             if (b == BTN_CAB):
+        #                 continue
+        #             elev.queue[elev.id][f][b] = 0
+        #
+        # else:
+        #     nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
+        #     for id in sorted(elev.queue):
+        #         if (str(id) not in nodes_online and elev.network[id] is ONLINE):
+        #             elev.network[id] = OFFLINE
+        #             for f in range(N_FLOORS):
+        #                 for b in range(N_BUTTONS):
+        #                     if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+        #                         continue
+        #                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+        #                     order_node.order_publisher.publish(order_newOrderMsg)
+        #                     elev.queue[id][f][b] = 0
 
         #~~~ Check stop button ~~~#
         if (fsm.driver.elev_get_stop_signal()):
