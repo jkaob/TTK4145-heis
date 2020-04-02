@@ -75,6 +75,7 @@ class ElevatorNode(Node):
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
 
+
         if (msg.id not in elev.queue):
             elev.queue[msg.id] = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
 
@@ -103,8 +104,9 @@ class ElevatorNode(Node):
 
         return
 
-
     def status_callback(self, msg):
+        if (msg.id == elev.id):
+            return
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
@@ -131,7 +133,6 @@ class ElevatorNode(Node):
                 timer_orderConfirmedStop(elev, start_time)
                 fsm.fsm_onNewOrder(elev, id, floor, btn)
 
-        #Print all queues
         self.get_logger().warn("Printing all queues")
         for id in sorted(elev.queue):
             print("Id: %d\t" %(id), end = " ")
@@ -233,7 +234,8 @@ def main(args=None):
                     while (fsm.driver.elev_get_button_signal(b, f)):
                         pass ## sjekk om dette kan gjøres bedre
 
-                    if (elev.network[elev.id] == OFFLINE and b is not BTN_CAB):
+                    if (elev.network[elev.id] == OFFLINE and b == BTN_CAB):
+                        fsm.fsm_onNewOrder(elev, elev.id, f, b)
                         continue
                     order_newOrderMsg = msg_create_newOrderMessage(elev, f, b)
                     order_node.order_publisher.publish(order_newOrderMsg)
@@ -280,26 +282,33 @@ def main(args=None):
                 fsm.fsm_onNewOrder(elev,elev.id,f,b)
                 timer_orderConfirmedStop(elev, start_time)
 
-        # #~~~ Check if elevator has lost power or network connection ~~~#
-        # if (len(elev.queue) > 1 and len(order_node.get_node_names()) == 1):
-        #     for f in range(N_FLOORS):
-        #         for b in range(N_BUTTONS):
-        #             if (b == BTN_CAB):
-        #                 continue
-        #             elev.queue[elev.id][f][b] = 0
-        #
-        # else:
-        #     nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-        #     for id in sorted(elev.queue):
-        #         if (str(id) not in nodes_online and elev.network[id] is ONLINE):
-        #             elev.network[id] = OFFLINE
-        #             for f in range(N_FLOORS):
-        #                 for b in range(N_BUTTONS):
-        #                     if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-        #                         continue
-        #                     order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-        #                     order_node.order_publisher.publish(order_newOrderMsg)
-        #                     elev.queue[id][f][b] = 0
+        #~~~ Check if elevator has lost power or network connection ~~~#
+        #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #try:
+        #    s.connect(("8.8.8.8", 80))
+        #except:
+        #    print("OFFLINE")
+        if (len(elev.queue) > 1 and len(order_node.get_node_names()[:-1]) == 1): #This elev is offline
+            elev.network[elev.id] = OFFLINE
+            #print("OFFLINE!!")
+            for f in range(N_FLOORS):
+                for b in range(N_BUTTONS):
+                    if (b == BTN_CAB):
+                        continue
+                    elev.queue[elev.id][f][b] = 0
+
+        else:
+            nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
+            for id in sorted(elev.queue):
+                if (str(id) not in nodes_online and elev.network[id] is ONLINE):  #Other elev is offline
+                    elev.network[id] = OFFLINE
+                    for f in range(N_FLOORS):
+                        for b in range(N_BUTTONS):
+                            if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+                                continue
+                            order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                            order_node.order_publisher.publish(order_newOrderMsg)
+                            elev.queue[id][f][b] = 0
 
         #~~~ Check stop button ~~~#
         if (fsm.driver.elev_get_stop_signal()):
