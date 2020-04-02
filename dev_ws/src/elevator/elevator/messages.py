@@ -60,7 +60,7 @@ def messages_createMessage(e, type, floor=None, btn=None, knownID=None, initmode
 ## THESE ARE THE RIGHT ONES:
 
 def msg_create_initMessage(elev, initmode=None):
-        msg           = Status()
+        msg           = Init()
         msg.id        = elev.id
         msg.floor     = elev.floor[elev.id]
         msg.behaviour = elev.behaviour[elev.id]
@@ -77,14 +77,14 @@ def msg_create_newOrderMessage(elev, floor=None, btn=None):
         return msg
 
 def msg_create_orderConfirmedMessage(elev, floor=None, btn=None):
-        msg           = Order()
+        msg           = OrderConfirmed()
         msg.id        = elev.id
         msg.floor     = floor
         msg.button    = btn
         return msg
 
 def msg_create_orderExecutedMessage(elev):
-        msg           = Order()
+        msg           = OrderExecuted()
         msg.id        = elev.id
         msg.floor     = elev.floor[elev.id]
         return msg
@@ -99,7 +99,7 @@ def msg_create_statusMessage(elev):
         return msg
 
 def msg_create_nodeMessage(elev, knownID=None, initmode=None):
-        msg           = Status()
+        msg           = Node()
         msg.id        = elev.id
         msg.behaviour = elev.behaviour[elev.id]
         msg.direction = elev.direction[elev.id]
