@@ -30,18 +30,6 @@ def fsm_init(elev):
     util.util_setAllLights(elev)
     return
 
-
-#Denne burde kanskje flyttes til et annet sted? Kanskje rename util til utils, og legge til denne der?
-# def fsm_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
-#     for f in range(N_FLOORS):
-#         for b in range(N_BUTTONS):
-#             #for id in id_list: - Implementer dette
-#                 if (elev.queue[elev.id][f][b]):
-#                     driver.elev_set_button_lamp(b, f, 1)
-#                     break
-#                 driver.elev_set_button_lamp(b, f, 0)
-#     return
-
 def fsm_onInitBetweenFloors(elev):
 
     driver.elev_set_motor_direction(DIRN_DOWN)
@@ -87,6 +75,7 @@ def fsm_onFloorArrival(elev, id, floor):
     if (id != elev.id):
         for b in range(N_BUTTONS):
             elev.queue[id][floor][b] = 0
+        util.util_setAllLights(elev)
         return
 
     timer_executionStop() # no mechanical error
