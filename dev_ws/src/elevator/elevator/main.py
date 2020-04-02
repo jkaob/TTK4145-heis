@@ -281,14 +281,31 @@ def main(args=None):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
-            if (elev.network[elev.id] == OFFLINE):
+            if (elev.network[elev.id] == OFFLINE and elev.behaviour[elev.id] == IDLE):
                 elev.network[elev.id] = ONLINE
                 init_msg = msg_create_initMessage(elev, RECONNECT)
-                order_node.init_publisher.publish(init_msg)
-                print('WE ARE NOW ONLINE 1')
-                time.sleep(3)
-                rclpy.spin_once(order_node,executor=None,timeout_sec=0)
+                time.sleep(0.8)
                 print('WE ARE NOW ONLINE 2')
+                nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
+                print(nodes_online)
+                order_node.init_publisher.publish(init_msg)
+            else:
+
+                #nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
+                for id in sorted(elev.queue):
+                    blank_ip = s.getsockname()[0][:-len(str(elev.id))]
+                    target_ip = blank_ip + str(id)
+                    response = os.system("ping -c 1 " + target_ip)
+                    if (response != 0 and elev.network[id] == ONLINE):  #Other elev is offline
+                        print('OTHER ELEVATOR IS OFFLINE')
+                        elev.network[id] = OFFLINE
+                        for f in range(N_FLOORS):
+                            for b in range(N_BUTTONS):
+                                if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+                                    continue
+                                    order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                                    order_node.order_publisher.publish(order_newOrderMsg)
+                                    elev.queue[id][f][b] = 0
         except:
             #print("THIS ELEVATOR IS NOW OFFLINE!")
             elev.network[elev.id] = OFFLINE
@@ -298,19 +315,7 @@ def main(args=None):
                         continue
                     elev.queue[elev.id][f][b] = 0
 
-        if (elev.network[elev.id] == ONLINE):
-            nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-            for id in sorted(elev.queue):
-                if (str(id) not in nodes_online and elev.network[id] == ONLINE):  #Other elev is offline
-                    print('OTHER ELEVATOR IS OFFLINE')
-                    elev.network[id] = OFFLINE
-                    for f in range(N_FLOORS):
-                        for b in range(N_BUTTONS):
-                            if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-                                continue
-                            order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-                            order_node.order_publisher.publish(order_newOrderMsg)
-                            elev.queue[id][f][b] = 0
+        #if (elev.network[elev.id] == ONLINE):
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
