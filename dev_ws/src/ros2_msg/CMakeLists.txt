@@ -42,6 +42,7 @@ rosidl_generate_interfaces(new_msg
   "msg/Status.msg"
   "msg/Init.msg"
   "msg/NodeMsg.msg"
+  "msg/HeartBeat.msg"
   DEPENDENCIES builtin_interfaces
 )
 

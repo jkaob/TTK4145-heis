@@ -7,7 +7,13 @@
 - Matrise generering
 - Code quality & file cleanup
 
-- Cab orders when offline 
+- Cab orders when offline
+
+-HearBeat:
+  - Dictionary med tidene - Ala unacknowledgedOrders
+  - HearBeat callback - Skriv ordentlig
+  - HeartBeat Timemot check i main
+  - Bruk status som heartbeat melding
 
 # UNDER WORK
 - Detektere om denne heisen har mistet nett (ping google?), begynt main.py linje 278

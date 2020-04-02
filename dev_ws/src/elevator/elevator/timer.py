@@ -62,3 +62,23 @@ def timer_executionStop():
     print('Execution timer stopped')
 
     return
+
+#~ HeartBeat Timer
+heartbeat_active  = 0
+heartbeat_endTime = 0
+
+def timer_heartBeatTimeout():
+    return (heartbeat_active and (time.time() > heartbeat_endTime))
+
+def timer_heartBeatStop():
+    global heartbeat_active
+    heartbeat_active = 0
+    return
+
+def timer_heartBeatStart():
+    global heartbeat_active
+    global heartbeat_endTime
+    heartbeat_active  = 1
+    heartbeat_endTime = time.time() + TIME_HEARTBEAT
+
+    return

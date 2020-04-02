@@ -11,6 +11,10 @@ from ros2_msg.msg import OrderConfirmed
 from status import LocalElevator
 from constants import *
 
+def msg_create_heartBeatMessage(elev):
+    msg               = HearBeat()
+    msg.id            = elev.id
+
 def msg_create_initMessage(elev, initmode):
         msg           = Init()
         msg.id        = elev.id

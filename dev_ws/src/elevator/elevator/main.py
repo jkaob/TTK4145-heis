@@ -41,9 +41,8 @@ driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 ## Get IP for this computer ##
 try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    local_id = s.getsockname()[0][-3:] #last 3 characters
+    local_ip = util_getLocalIp()
+    local_id = local_ip.getsockname()[0][-3:] #last 3 characters
     local_id = local_id.replace('.','')
 except:
     print("NO INTERNET!")
@@ -68,6 +67,7 @@ class ElevatorNode(Node):
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
+        self.order_hearBeat_subscriber  = self.create_subscription(HeartBeat, 'heartbeat', self.heartbeat_callback,10)
 
         #~ Publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
@@ -76,10 +76,16 @@ class ElevatorNode(Node):
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)
         self.order_confirmed_publisher  = self.create_publisher(OrderConfirmed, 'confirmed_orders', 10)
+        self.heartbeat_publisher        = self.create_publisher(HeartBeat, 'heartbeat', 10)
 
         return
 
   #~~~ Callback functions ~~~#
+    # def heartbeat_callback(self,msg):
+    #     elev.heartbeat[msg.id] = get time now;
+    # legg til at heisen funker , typ status ellerno
+
+
     def node_callback(self, msg):
         if (msg.id == elev.id):
             return
@@ -225,13 +231,15 @@ def main(args=None):
     rclpy.spin_once(order_node,executor=None,timeout_sec=5)
     order_node.get_logger().warn("Init message sent from self!")
 
+    timer_heartBeatStart()
+
     while (rclpy.ok()):
         rclpy.spin_once(order_node,executor=None,timeout_sec=0)
 
         #~~~ Check for new button push ~~~#
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                if (events_NewButtonPush(elev,f,b)):
+                if (events_newButtonPush(elev,f,b)):
                     if (elev.network[elev.id] == OFFLINE and b == BTN_CAB):
                         fsm.fsm_onNewOrder(elev, elev.id, f, b)
                         continue
@@ -268,7 +276,6 @@ def main(args=None):
             init_msg = msg_create_initMessage(elev, RECONNECT)
             order_node.init_publisher.publish(init_msg)
 
-
         #~~~ Order not confirmed ~~~#
         for start_time in sorted(elev.unacknowledgedOrders):
             if (timer_orderConfirmedTimeout(start_time)): # order not confirmed
@@ -278,44 +285,54 @@ def main(args=None):
                 fsm.fsm_onNewOrder(elev,elev.id,floor,btn)
                 timer_orderConfirmedStop(elev, start_time)
 
-        #~~~ Check if elevator has lost power or network connection ~~~#
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            if (elev.network[elev.id] == OFFLINE and elev.behaviour[elev.id] == IDLE):
-                elev.network[elev.id] = ONLINE
-                init_msg = msg_create_initMessage(elev, RECONNECT)
-                time.sleep(0.8)
-                print('WE ARE NOW ONLINE 2')
-                nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-                print(nodes_online)
-                order_node.init_publisher.publish(init_msg)
-            else:
-                #nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-                for id in sorted(elev.queue):
-                    blank_ip = s.getsockname()[0][:-len(str(elev.id))]
-                    target_ip = blank_ip + str(id)
-                    response = util_ping(target_ip)
-                    if (response != 0 and elev.network[id] == ONLINE):  #Other elev is offline
-                        print('OTHER ELEVATOR IS OFFLINE')
-                        elev.network[id] = OFFLINE
-                        for f in range(N_FLOORS):
-                            for b in range(N_BUTTONS):
-                                if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-                                    continue
-                                    order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-                                    order_node.order_publisher.publish(order_newOrderMsg)
-                                    elev.queue[id][f][b] = 0
-        except:
-            #print("THIS ELEVATOR IS NOW OFFLINE!")
-            elev.network[elev.id] = OFFLINE
-            for f in range(N_FLOORS):
-                for b in range(N_BUTTONS):
-                    if (b == BTN_CAB):
-                        continue
-                    elev.queue[elev.id][f][b] = 0
+        #~~~ Send heartbeat ~~~#
+        if (elev.network[elev.id] == ONLINE and timer_heartBeatTimeout()):
+            timer_heartBeatStop()
+            heartBeatMsg = msg_create_heartBeatMessage(elev)
+            order_node.heartbeat_publisher.publish(heartBeatMsg)
+            timer_heartBeatStart()
 
-        #if (elev.network[elev.id] == ONLINE):
+        #~~~ HeartBeat timeout ~~~#
+        # for start_time in sorted(elev.hearBeats_soimethingeifngngferjingriufv):
+        #     if (timer_orderConfirmedTimeout(start_time)): # Endre til at heartbeat er for treg
+        #         order_node.get_logger().error('Order Confirmation Timed Out!')
+        #         floor = elev.unacknowledgedOrders[start_time][1]
+        #         btn = elev.unacknowledgedOrders[start_time][2]
+        #         fsm.fsm_onNewOrder(elev,elev.id,floor,btn)
+        #         timer_orderConfirmedStop(elev, start_time)
+
+
+
+        #~~~ Check if elevator has lost power or network connection ~~~#
+        # try:
+        #     #~ Throws an exception if the elevator can not connect to network
+        #     local_ip = util_getLocalIp()
+        #     if (events_offlineAndNoOrders(elev)):
+        #         elev.network[elev.id] = ONLINE
+        #         init_msg = msg_create_initMessage(elev, RECONNECT)
+        #         time.sleep(0.5)
+        #         print('WE ARE NOW ONLINE')
+        #         order_node.init_publisher.publish(init_msg)
+        #     else:
+        #         for id in sorted(elev.queue):
+        #             if (events_otherElevOffline(elev,id)):
+        #                 print('OTHER ELEVATOR IS OFFLINE:    %d'%id)
+        #                 elev.network[id] = OFFLINE
+        #                 for f in range(N_FLOORS):
+        #                     for b in range(N_BUTTONS):
+        #                         if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+        #                             continue
+        #                             order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+        #                             order_node.order_publisher.publish(order_newOrderMsg)
+        #                             elev.queue[id][f][b] = 0
+        # except:
+        #     #print("THIS ELEVATOR IS NOW OFFLINE!")
+        #     elev.network[elev.id] = OFFLINE
+        #     for f in range(N_FLOORS):
+        #         for b in range(N_BUTTONS):
+        #             if (b == BTN_CAB):
+        #                 continue
+        #             elev.queue[elev.id][f][b] = 0
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
