@@ -16,7 +16,7 @@ sys.path.append(os.path.abspath(install_dir))
 #~ ROS packages
 from rclpy.node   import Node
 from ros2_msg.msg import Init
-from ros2_msg.msg import Node
+from ros2_msg.msg import NodeMsg
 from ros2_msg.msg import Status
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
@@ -34,9 +34,9 @@ from statusCopy     import SingleElevatorCopy
 
 
 #~~~ Include driver ~~~#
-driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
-driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-driver.elev_init(ELEV_MODE) #Simulator / Physical model
+#driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
+#driver = cdll.LoadLibrary(os.path.abspath(driver_path))
+#driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 ## Get IP for this computer ##
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -56,7 +56,7 @@ class ElevatorNode(Node):
 
         #~ Subscribers for listening to topics
         self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
-        self.node_subscriber            = self.create_subscription(Node, 'node', self.node_callback, 10)
+        self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 10)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 10)
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
@@ -64,7 +64,7 @@ class ElevatorNode(Node):
 
         #~ Publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
-        self.node_publisher             = self.create_publisher(Node, 'node', 10)
+        self.node_publisher             = self.create_publisher(NodeMsg, 'node', 10)
         self.status_publisher           = self.create_publisher(Status, 'status', 10)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)

@@ -2,7 +2,7 @@ import rclpy
 
 #~ Message formats
 from ros2_msg.msg import Init
-from ros2_msg.msg import Node
+from ros2_msg.msg import NodeMsg
 from ros2_msg.msg import Status
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
@@ -103,7 +103,7 @@ def msg_create_statusMessage(elev):
         return msg
 
 def msg_create_nodeMessage(elev, knownID, initmode):
-        msg           = Node()
+        msg           = NodeMsg()
         msg.id        = elev.id
         msg.behaviour = elev.behaviour[elev.id]
         msg.direction = elev.direction[elev.id]

@@ -41,7 +41,7 @@ rosidl_generate_interfaces(new_msg
   "msg/OrderExecuted.msg"
   "msg/Status.msg"
   "msg/Init.msg"
-  "msg/Node.msg"
+  "msg/NodeMsg.msg"
   DEPENDENCIES builtin_interfaces
 )
 
