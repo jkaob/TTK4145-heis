@@ -13,15 +13,14 @@ sys.path.append(os.path.abspath(install_dir))
 ############################################################
 
 
-
-
 #~ ROS packages
 from rclpy.node   import Node
-from ros2_msg.msg import Order
-from ros2_msg.msg import OrderConfirmed
 from ros2_msg.msg import Init
 from ros2_msg.msg import Node
 from ros2_msg.msg import Status
+from ros2_msg.msg import Order
+from ros2_msg.msg import OrderExecuted
+from ros2_msg.msg import OrderConfirmed
 
 #~ source files
 from constants      import *
@@ -43,14 +42,14 @@ local_id = local_id.replace('.','')
 
 elev = LocalElevator(int(local_id))
 
-#~~~~=*=~~~~# ROS #~~~~=*=~~~~#
+#~~~~=#=~~~~# ROS #~~~~=#=~~~~#
 
 class ElevatorNode(Node):
 
     def __init__(self):
         super().__init__('elev_node_' + str(local_id))
 
-        #~Subscribers for listening to topics
+        #~ Subscribers for listening to topics
         self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
         self.node_subscriber            = self.create_subscription(Node, 'node', self.node_callback, 10)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 10)
@@ -58,7 +57,7 @@ class ElevatorNode(Node):
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
 
-        #~Publishers for sending to topics
+        #~ Publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
         self.node_publisher             = self.create_publisher(Node, 'node', 10)
         self.status_publisher           = self.create_publisher(Status, 'status', 10)
