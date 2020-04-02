@@ -26,11 +26,6 @@ ONLINE              = 1
 RESTART             = 0
 RECONNECT           = 1
 
-#~ System
-MODEL               = 0
-SIMULATOR           = 1
-ELEV_MODE           = SIMULATOR
-
 #~ Time weighting in seconds
 TIME_BETWEEN_FLOORS = 5     # Seconds it takes to travel between floors
 TIME_DOOR_OPEN      = 3.0   # Seconds door is kept open
@@ -44,3 +39,8 @@ MSG_ORDER_CONFIRMED = 2
 MSG_ORDER_EXECUTED  = 3
 MSG_STATUS          = 4
 MSG_NODE            = 5
+
+#~ System
+MODEL               = 0
+SIMULATOR           = 1
+ELEV_MODE           = SIMULATOR
