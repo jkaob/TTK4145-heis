@@ -8,6 +8,11 @@ import sys
 import time
 from ctypes import *
 
+#### Add script path for ros compiled files to find them ###
+install_dir = os.path.join(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(install_dir))
+############################################################
+
 #~ ROS packages
 from rclpy.node   import Node
 from ros2_msg.msg import Init
@@ -27,16 +32,11 @@ from events         import *
 from status         import LocalElevator
 from statusCopy     import SingleElevatorCopy
 
-#### Add script path for ros compiled files to find them ###
-install_dir = os.path.join(os.path.dirname(__file__))
-sys.path.append(os.path.abspath(install_dir))
-############################################################
 
 #~~~ Include driver ~~~#
 driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
 driver = cdll.LoadLibrary(os.path.abspath(driver_path))
 driver.elev_init(ELEV_MODE) #Simulator / Physical model
-
 
 ## Get IP for this computer ##
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -52,7 +52,7 @@ elev = LocalElevator(int(local_id))
 class ElevatorNode(Node):
 
     def __init__(self):
-        super().__init__('elev_node_' + str(local_id))
+        super().__init__('elev_node_'+str(local_id))
 
         #~ Subscribers for listening to topics
         self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
