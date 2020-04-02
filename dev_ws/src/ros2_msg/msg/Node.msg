@@ -1,0 +1,9 @@
+int32 id
+int32 behaviour
+int32 direction
+int32 floor
+int32 network
+int32 initmode
+int32 knownid
+int32[] queue
+int32[] cabqueue

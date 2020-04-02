@@ -31,4 +31,13 @@ To talk between ros nodes on different computers you need to set a correct domai
 export ROS_DOMAIN_ID=42
 ```
 ## TODO
+Skal vi lage en 'event'modul?
+
+Altså lage en modul som inneholder
+  NewButtonPushed - Som tar for seg:
+     for f in range(N_FLOORS):
+            for b in range(N_BUTTONS):
+                v = fsm.driver.elev_get_button_signal(b, f)
+                if (v and (v != elev.queue[elev.id][f][b])):
+Osv...
 
