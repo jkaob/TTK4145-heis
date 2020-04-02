@@ -16,7 +16,7 @@ sys.path.append(os.path.abspath(install_dir))
 #~ ROS packages
 from rclpy.node   import Node
 from ros2_msg.msg import Init
-from ros2_msg.msg import Node
+from ros2_msg.msg import NodeMsg
 from ros2_msg.msg import Status
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
@@ -56,7 +56,7 @@ class ElevatorNode(Node):
 
         #~ Subscribers for listening to topics
         self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
-        self.node_subscriber            = self.create_subscription(Node, 'node', self.node_callback, 10)
+        self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 10)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 10)
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
@@ -64,7 +64,7 @@ class ElevatorNode(Node):
 
         #~ Publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
-        self.node_publisher             = self.create_publisher(Node, 'node', 10)
+        self.node_publisher             = self.create_publisher(NodeMsg, 'node', 10)
         self.status_publisher           = self.create_publisher(Status, 'status', 10)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)
@@ -149,7 +149,7 @@ class ElevatorNode(Node):
         return
 
     def order_executed_callback(self, msg):
-        self.get_logger().warn('Order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
+        self.get_logger().warn('Order executed at ID: %d, Floor: %d' %(msg.id, msg.floor))
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 

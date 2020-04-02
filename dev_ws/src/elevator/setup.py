@@ -20,8 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'orderpublisher = elevator.order_publisher:main',
-                'elev = elevator.main:main'
+                'elev = elevator.main:main',
         ],
     },
 )
