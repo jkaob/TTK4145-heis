@@ -105,9 +105,9 @@ def msg_create_statusMessage(elev):
 def msg_create_nodeMessage(elev, knownID, initmode):
         msg           = NodeMsg()
         msg.id        = elev.id
+        msg.floor     = elev.floor[elev.id]
         msg.behaviour = elev.behaviour[elev.id]
         msg.direction = elev.direction[elev.id]
-        msg.floor     = elev.floor[elev.id]
         msg.network   = elev.network[elev.id]
         msg.initmode  = initmode
         msg.knownid   = knownID

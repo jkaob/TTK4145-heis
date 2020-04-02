@@ -38,23 +38,24 @@ def fsm_onInitBetweenFloors(elev):
     return
 
 def fsm_onNewOrder(elev, id, floor, btn): #When a new order is distributed and confirmed from the cost function
-    if (id != elev.id):
+
+    if (id != elev.id): # another elevator got the order
         elev.queue[id][floor][btn] = 1
         util.util_setAllLights(elev)
         return
 
-    bh = elev.behaviour[elev.id]
+    behaviour = elev.behaviour[elev.id]
 
-    if (bh == DOOR_OPEN):
+    if (behaviour == DOOR_OPEN):
         if (elev.floor[elev.id] == floor):
             timer_doorsStart()
         else:
             elev.queue[elev.id][floor][btn] = 1
 
-    elif (bh == MOVING):
+    elif (behaviour == MOVING):
         elev.queue[elev.id][floor][btn] = 1
 
-    elif (bh == IDLE):
+    elif (behaviour == IDLE):
         if (elev.floor[elev.id] == floor):
             driver.elev_set_door_open_lamp(1)
             timer_doorsStart()
@@ -96,8 +97,8 @@ def fsm_onFloorArrival(elev, id, floor):
     return
 
 def fsm_onDoorTimeout(elev):
-    bh = elev.behaviour[elev.id]
-    if (bh == DOOR_OPEN):
+    behaviour = elev.behaviour[elev.id]
+    if (behaviour == DOOR_OPEN):
         elev.direction[elev.id] = util.util_chooseDirection(elev)
         driver.elev_set_door_open_lamp(0)
         driver.elev_set_motor_direction(elev.direction[elev.id])
@@ -116,12 +117,15 @@ def fsm_onMechanicalError(elev):
                 continue
             elev.queue[elev.id][f][b] = 0
 
-    if (elev.floor != N_FLOORS-1):
-        while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] + 1):
-            driver.elev_set_motor_direction(DIRN_UP)
-    else:
-        while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] - 1):
-            driver.elev_set_motor_direction(DIRN_DOWN)
+    while (driver.elev_get_floor_sensor_signal() == -1):
+        driver.elev_set_motor_direction(elev.direction[elev.id]*(-1)) # flip direction
+
+    # if (elev.floor != N_FLOORS-1):
+    #     while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] + 1):
+    #         driver.elev_set_motor_direction(DIRN_UP)
+    # else:
+    #     while (driver.elev_get_floor_sensor_signal() != elev.floor[elev.id] - 1):
+    #         driver.elev_set_motor_direction(DIRN_DOWN)
 
     driver.elev_set_motor_direction(DIRN_STOP)
     driver.elev_set_door_open_lamp(1)
