@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(install_dir))
 ###### LOAD DRIVER ########
 driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
 driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-driver.elev_init(ELEV_MODE) #Simulator / Physical model
+#driver.elev_init(ELEV_MODE) #Simulator / Physical model
 ###########################
 
 def fsm_init(elev):
@@ -95,7 +95,7 @@ def fsm_onFloorArrival(elev, id, floor):
             driver.elev_set_motor_direction(DIRN_STOP)
             driver.elev_set_door_open_lamp(1)
             timer_doorsStart()
-            elev = util.util_clearAtCurrentFloor(elev)
+            util.util_clearAtCurrentFloor(elev)
             fsm_setAllLights(elev)
             elev.behaviour[elev.id] = DOOR_OPEN
         else:

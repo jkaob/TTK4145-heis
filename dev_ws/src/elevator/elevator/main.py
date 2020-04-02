@@ -12,7 +12,10 @@ install_dir = os.path.join(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(install_dir))
 ############################################################
 
-
+#~~~ Include driver ~~~#
+driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
+driver = cdll.LoadLibrary(os.path.abspath(driver_path))
+driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 
 #~ ROS packages
@@ -230,10 +233,6 @@ def main(args=None):
         #~~~ Check for new button push ~~~#
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                # v = fsm.driver.elev_get_button_signal(b, f)
-                # if (v and (v != elev.queue[elev.id][f][b])):
-                #     while (fsm.driver.elev_get_button_signal(b, f)):
-                #         pass ## sjekk om dette kan gjøres bedre
                 if (events_NewButtonPush(elev,f,b)):
                     if (elev.network[elev.id] == OFFLINE and b == BTN_CAB):
                         fsm.fsm_onNewOrder(elev, elev.id, f, b)
@@ -242,10 +241,8 @@ def main(args=None):
                     order_node.order_publisher.publish(order_newOrderMsg)
 
         #~~~ Check floor sensors ~~~#
-        #f = fsm.driver.elev_get_floor_sensor_signal()
-        #if ((f != -1) and (f != elev.floor[elev.id])):
         if (events_onNewFloor(elev)):
-            fsm.fsm_onFloorArrival(elev, elev.id, fsm.driver.elev_get_floor_sensor_signal())
+            fsm.fsm_onFloorArrival(elev, elev.id, driver.elev_get_floor_sensor_signal())
             if (elev.behaviour[elev.id] == DOOR_OPEN):
                 order_orderExecutedMsg = msg_create_orderExecutedMessage(elev)
                 order_node.order_executed_publisher.publish(order_orderExecutedMsg)
@@ -312,8 +309,8 @@ def main(args=None):
                             elev.queue[id][f][b] = 0
 
         #~~~ Check stop button ~~~#
-        if (fsm.driver.elev_get_stop_signal()):
-            fsm.driver.elev_set_motor_direction(DIRN_STOP)
+        if (driver.elev_get_stop_signal()):
+            driver.elev_set_motor_direction(DIRN_STOP)
             break
 
     order_node.get_logger().error('Main loop done, shutting down.')

@@ -31,12 +31,12 @@ def timer_doorsStart():
 def timer_orderConfirmedTimeout(start_time):
     return (time.time() > start_time + TIME_ORDER_TIMEOUT)
 
-def timer_orderConfirmedStart(e,id,f,btn):
-    e.unacknowledgedOrders[time.time()] = [id, f, btn]
+def timer_orderConfirmedStart(elev,id,floor,btn):
+    elev.unacknowledgedOrders[time.time()] = [id, floor, btn]
     return
 
-def timer_orderConfirmedStop(e,start_time):
-    e.unacknowledgedOrders.pop(start_time, None)
+def timer_orderConfirmedStop(elev,start_time):
+    elev.unacknowledgedOrders.pop(start_time, None)
     return
 
 

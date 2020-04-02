@@ -14,31 +14,31 @@ import util
 #We should now have the id of the elevator that has the least time to serve that order
 #Assign the new order to the corresponding id
 
-def distributor_timeToIdle(e): #Calculates the time it takes to get to IDLE
+def distributor_timeToIdle(elev): #Calculates the time it takes to get to IDLE
     duration = 0
-    bh = e.behaviour[e.id]
+    behaviour = elev.behaviour[elev.id]
 
-    if (bh == IDLE):
-        e.direction[e.id] = util.util_chooseDirection(e)
-        if (e.direction[e.id] == DIRN_STOP):
+    if (behaviour == IDLE):
+        elev.direction[elev.id] = util.util_chooseDirection(elev)
+        if (elev.direction[elev.id] == DIRN_STOP):
             return duration
 
-    elif (bh == MOVING):
+    elif (behavior == MOVING):
         duration += TIME_BETWEEN_FLOORS/2
-        e.floor[e.id] += e.direction[e.id]
+        elev.floor[elev.id] += elev.direction[elev.id]
 
-    elif (bh == DOOR_OPEN):
+    elif (behaviour == DOOR_OPEN):
         duration -= TIME_DOOR_OPEN/2
 
     while (1):
-        if (util.util_shouldStop(e)):
-            e = util.util_clearAtCurrentFloor(e)
+        if (util.util_shouldStop(elev)):
+            util.util_clearAtCurrentFloor(elev)
             duration += TIME_DOOR_OPEN
-            e.direction[e.id] = util.util_chooseDirection(e)
-            if (e.direction[e.id] == DIRN_STOP):
+            elev.direction[elev.id] = util.util_chooseDirection(elev)
+            if (elev.direction[elev.id] == DIRN_STOP):
                 return duration
 
-        e.floor[e.id] += e.direction[e.id]
+        elev.floor[elev.id] += elev.direction[elev.id]
         duration += TIME_BETWEEN_FLOORS
 
     return
