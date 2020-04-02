@@ -295,7 +295,7 @@ def main(args=None):
                 for id in sorted(elev.queue):
                     blank_ip = s.getsockname()[0][:-len(str(elev.id))]
                     target_ip = blank_ip + str(id)
-                    response = os.system("ping -c 1 " + target_ip)
+                    response = util_ping(target_ip)
                     if (response != 0 and elev.network[id] == ONLINE):  #Other elev is offline
                         print('OTHER ELEVATOR IS OFFLINE')
                         elev.network[id] = OFFLINE
