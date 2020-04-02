@@ -8,17 +8,6 @@ import sys
 import time
 from ctypes import *
 
-#### Add script path for ros compiled files to find them ###
-install_dir = os.path.join(os.path.dirname(__file__))
-sys.path.append(os.path.abspath(install_dir))
-############################################################
-
-#~~~ Include driver ~~~#
-driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
-driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-driver.elev_init(ELEV_MODE) #Simulator / Physical model
-
-
 #~ ROS packages
 from rclpy.node   import Node
 from ros2_msg.msg import Init
@@ -37,6 +26,16 @@ from timer          import *
 from events         import *
 from status         import LocalElevator
 from statusCopy     import SingleElevatorCopy
+
+#### Add script path for ros compiled files to find them ###
+install_dir = os.path.join(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(install_dir))
+############################################################
+
+#~~~ Include driver ~~~#
+driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
+driver = cdll.LoadLibrary(os.path.abspath(driver_path))
+driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 
 ## Get IP for this computer ##
