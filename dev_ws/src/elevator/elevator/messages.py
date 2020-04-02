@@ -116,8 +116,7 @@ def msg_create_nodeMessage(elev, knownID, initmode):
 
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                index = f*N_BUTTONS + b
-                msg.queue[index] = int(elev.queue[elev.id][f][b])
+                msg.queue[f*N_BUTTONS + b] = int(elev.queue[elev.id][f][b])
             msg.cabqueue[f] = elev.queue[knownID][f][BTN_CAB]
 
         return msg
