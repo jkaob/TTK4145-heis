@@ -39,10 +39,16 @@ driver = cdll.LoadLibrary(os.path.abspath(driver_path))
 driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 ## Get IP for this computer ##
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("8.8.8.8", 80))
-local_id = s.getsockname()[0][-3:] #last 3 characters
-local_id = local_id.replace('.','')
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    local_id = s.getsockname()[0][-3:] #last 3 characters
+    local_id = local_id.replace('.','')
+except:
+    print("NO INTERNET!")
+    print("NO ELEVATOR TODAY!")
+    print("SHUTTING DOWN!")
+    exit()
 ###########################
 
 elev = LocalElevator(int(local_id))
@@ -81,7 +87,6 @@ class ElevatorNode(Node):
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
-
 
         if (msg.id not in elev.queue):
             elev.queue[msg.id] = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
@@ -139,26 +144,12 @@ class ElevatorNode(Node):
             if (msg.id == id and msg.floor == floor and msg.button == btn):
                 timer_orderConfirmedStop(elev, start_time)
                 fsm.fsm_onNewOrder(elev, id, floor, btn)
-
-        self.get_logger().warn("Printing all queues")
-        for id in sorted(elev.queue):
-            print("Id: %d\t" %(id), end = " ")
-            print(elev.queue[id])
-        print(" --- \n")
-
         return
 
     def order_executed_callback(self, msg):
         self.get_logger().warn('Order executed at ID: %d, Floor: %d' %(msg.id, msg.floor))
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
-
-        self.get_logger().warn("Printing all queues")
-        for id in sorted(elev.queue):
-            print("Id: %d\t" %(id), end = " ")
-            print(elev.queue[id])
-        print(" --- \n")
-
         return
 
     def order_callback(self, msg):
@@ -216,18 +207,21 @@ class ElevatorNode(Node):
 ############### MAIN LOOP #####################
 def main(args=None):
     global elev
+    try:
+        order_node.destroy_node()
+        rclpy.shutdown()
+    except:
+        print('ORDER NOT PURGED')
+        pass
 
     rclpy.init(args=args)
     order_node = ElevatorNode()
 
     fsm.fsm_init(elev)
-    order_node.get_logger().warn('Init complete! ID: %d\n' %(elev.id))
-
     init_msg = msg_create_initMessage(elev, RESTART)
     order_node.init_publisher.publish(init_msg)
 
-    rclpy.spin_once(order_node,executor=None,timeout_sec=0)
-
+    rclpy.spin_once(order_node,executor=None,timeout_sec=5)
     order_node.get_logger().warn("Init message sent from self!")
 
     while (rclpy.ok()):
@@ -284,32 +278,32 @@ def main(args=None):
                 timer_orderConfirmedStop(elev, start_time)
 
         #~~~ Check if elevator has lost power or network connection ~~~#
-        #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #try:
-        #    s.connect(("8.8.8.8", 80))
-        #except:
-        #    print("OFFLINE")
-        if (len(elev.queue) > 1 and len(order_node.get_node_names()[:-1]) == 1): #This elev is offline
-            elev.network[elev.id] = OFFLINE
-            #print("OFFLINE!!")
-            for f in range(N_FLOORS):
-                for b in range(N_BUTTONS):
-                    if (b == BTN_CAB):
-                        continue
-                    elev.queue[elev.id][f][b] = 0
-
-        else:
-            nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
-            for id in sorted(elev.queue):
-                if (str(id) not in nodes_online and elev.network[id] is ONLINE):  #Other elev is offline
-                    elev.network[id] = OFFLINE
-                    for f in range(N_FLOORS):
-                        for b in range(N_BUTTONS):
-                            if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-                                continue
-                            order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-                            order_node.order_publisher.publish(order_newOrderMsg)
-                            elev.queue[id][f][b] = 0
+        if (elev.network[elev.id]):
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+            except:
+                print("THIS ELEVATOR IS OFFLINE!")
+                elev.network[elev.id] = OFFLINE
+            if (elev.network[elev.id] == OFFLINE):
+                for f in range(N_FLOORS):
+                    for b in range(N_BUTTONS):
+                        if (b == BTN_CAB):
+                            continue
+                        elev.queue[elev.id][f][b] = 0
+            else:
+                nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
+                print('OTHER ELEVATOR IS OFFLINE')
+                for id in sorted(elev.queue):
+                    if (str(id) not in nodes_online and elev.network[id] == ONLINE):  #Other elev is offline
+                        elev.network[id] = OFFLINE
+                        for f in range(N_FLOORS):
+                            for b in range(N_BUTTONS):
+                                if (b == BTN_CAB or elev.queue[id][f][b] == 0):
+                                    continue
+                                order_newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
+                                order_node.order_publisher.publish(order_newOrderMsg)
+                                elev.queue[id][f][b] = 0
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
