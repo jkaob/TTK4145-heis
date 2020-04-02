@@ -36,10 +36,12 @@ if(BUILD_TESTING)
 endif()
 
 rosidl_generate_interfaces(new_msg
-  "msg/MyMsg.msg"
   "msg/Order.msg"
   "msg/OrderConfirmed.msg"
+  "msg/OrderExecuted.msg"
   "msg/Status.msg"
+  "msg/Init.msg"
+  "msg/Node.msg"
   DEPENDENCIES builtin_interfaces
 )
 
