@@ -29,6 +29,7 @@ from fsm            import *
 from messages       import *
 from timer          import *
 from events         import *
+from util           import *
 from status         import LocalElevator
 from statusCopy     import SingleElevatorCopy
 
@@ -290,7 +291,6 @@ def main(args=None):
                 print(nodes_online)
                 order_node.init_publisher.publish(init_msg)
             else:
-
                 #nodes_online = [i.strip('elev_node_') for i in order_node.get_node_names()]
                 for id in sorted(elev.queue):
                     blank_ip = s.getsockname()[0][:-len(str(elev.id))]
