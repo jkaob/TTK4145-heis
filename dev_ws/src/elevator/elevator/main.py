@@ -282,14 +282,15 @@ def main(args=None):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             if (elev.network[elev.id] == OFFLINE):
-                print('WE ARE NOW ONLINE AGAIN BBY!')
                 elev.network[elev.id] = ONLINE
                 init_msg = msg_create_initMessage(elev, RECONNECT)
                 order_node.init_publisher.publish(init_msg)
+                print('WE ARE NOW ONLINE 1')
+                time.sleep(3)
                 rclpy.spin_once(order_node,executor=None,timeout_sec=0)
-
+                print('WE ARE NOW ONLINE 2')
         except:
-            print("THIS ELEVATOR IS NOW OFFLINE!")
+            #print("THIS ELEVATOR IS NOW OFFLINE!")
             elev.network[elev.id] = OFFLINE
             for f in range(N_FLOORS):
                 for b in range(N_BUTTONS):
