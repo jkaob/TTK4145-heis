@@ -26,6 +26,7 @@ def fsm_init(elev):
     elev.direction[elev.id]   = DIRN_STOP
     elev.network[elev.id]     = ONLINE
 
+    driver.elev_set_floor_indicator(elev.floor[elev.id])
     util.util_setAllLights(elev)
     return
 

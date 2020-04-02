@@ -1,6 +1,14 @@
 import status
+import os
+import sys
+from ctypes import *
 from constants import *
 
+###### LOAD DRIVER ########
+driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
+driver = cdll.LoadLibrary(os.path.abspath(driver_path))
+#driver.elev_init(ELEV_MODE) #Simulator / Physical model
+###########################
 
 def util_orderAbove(elev): #Ta inn status klassen til seg selv
     for f in range(elev.floor[elev.id] + 1, N_FLOORS):

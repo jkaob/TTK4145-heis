@@ -34,9 +34,9 @@ from statusCopy     import SingleElevatorCopy
 
 
 #~~~ Include driver ~~~#
-#driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
-#driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-#driver.elev_init(ELEV_MODE) #Simulator / Physical model
+driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
+driver = cdll.LoadLibrary(os.path.abspath(driver_path))
+driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
 ## Get IP for this computer ##
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -149,7 +149,7 @@ class ElevatorNode(Node):
         return
 
     def order_executed_callback(self, msg):
-        self.get_logger().warn('Order executed at ID: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
+        self.get_logger().warn('Order executed at ID: %d, Floor: %d' %(msg.id, msg.floor))
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
 

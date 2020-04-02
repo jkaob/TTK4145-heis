@@ -23,7 +23,7 @@ def distributor_timeToIdle(elev): #Calculates the time it takes to get to IDLE
         if (elev.direction[elev.id] == DIRN_STOP):
             return duration
 
-    elif (behavior == MOVING):
+    elif (behaviour == MOVING):
         duration += TIME_BETWEEN_FLOORS/2
         elev.floor[elev.id] += elev.direction[elev.id]
 
