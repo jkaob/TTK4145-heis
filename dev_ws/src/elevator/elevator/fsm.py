@@ -25,19 +25,21 @@ def fsm_init(elev):
     elev.behaviour[elev.id]   = IDLE
     elev.direction[elev.id]   = DIRN_STOP
     elev.network[elev.id]     = ONLINE
+
+    util.util_setAllLights(elev)
     return
 
 
 #Denne burde kanskje flyttes til et annet sted? Kanskje rename util til utils, og legge til denne der?
-def fsm_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
-    for f in range(N_FLOORS):
-        for b in range(N_BUTTONS):
-            #for id in id_list: - Implementer dette
-                if (elev.queue[elev.id][f][b]):
-                    driver.elev_set_button_lamp(b, f, 1)
-                    break
-                driver.elev_set_button_lamp(b, f, 0)
-    return
+# def fsm_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
+#     for f in range(N_FLOORS):
+#         for b in range(N_BUTTONS):
+#             #for id in id_list: - Implementer dette
+#                 if (elev.queue[elev.id][f][b]):
+#                     driver.elev_set_button_lamp(b, f, 1)
+#                     break
+#                 driver.elev_set_button_lamp(b, f, 0)
+#     return
 
 def fsm_onInitBetweenFloors(elev):
 
@@ -49,7 +51,7 @@ def fsm_onInitBetweenFloors(elev):
 def fsm_onNewOrder(elev, id, floor, btn): #When a new order is distributed and confirmed from the cost function
     if (id != elev.id):
         elev.queue[id][floor][btn] = 1
-        fsm_setAllLights(elev)
+        util.util_setAllLights(elev)
         return
 
     bh = elev.behaviour[elev.id]
@@ -75,7 +77,7 @@ def fsm_onNewOrder(elev, id, floor, btn): #When a new order is distributed and c
             elev.behaviour[elev.id] = MOVING
             timer_executionStart() # check for mechanical error
 
-    fsm_setAllLights(elev)
+    util.util_setAllLights(elev)
 
     return
 
@@ -96,7 +98,7 @@ def fsm_onFloorArrival(elev, id, floor):
             driver.elev_set_door_open_lamp(1)
             timer_doorsStart()
             util.util_clearAtCurrentFloor(elev)
-            fsm_setAllLights(elev)
+            util.util_setAllLights(elev)
             elev.behaviour[elev.id] = DOOR_OPEN
         else:
             timer_executionStart()

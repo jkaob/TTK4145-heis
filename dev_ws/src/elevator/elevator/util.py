@@ -55,3 +55,17 @@ def util_clearAtCurrentFloor(elev):
         if (elev.queue[elev.id][elev.floor[elev.id]][b]):
             elev.queue[elev.id][elev.floor[elev.id]][b] = 0
     return
+
+
+def util_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
+    for f in range(N_FLOORS):
+        for b in range(N_BUTTONS):
+            for id in sorted(elev.queue):
+                if (b == BTN_CAB and id != elev.id):
+                    continue
+                elif (elev.queue[id][f][b]):
+                    driver.elev_set_button_lamp(b, f, 1)
+                    break
+                else:
+                    driver.elev_set_button_lamp(b, f, 0)
+    return
