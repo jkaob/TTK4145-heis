@@ -29,6 +29,7 @@ from distributor    import *
 from fsm            import *
 from messages       import *
 from timer          import *
+from events         import *
 from status         import LocalElevator
 from statusCopy     import SingleElevatorCopy
 
@@ -231,11 +232,11 @@ def main(args=None):
         #~~~ Check for new button push ~~~#
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
-                v = fsm.driver.elev_get_button_signal(b, f)
-                if (v and (v != elev.queue[elev.id][f][b])):
-                    while (fsm.driver.elev_get_button_signal(b, f)):
-                        pass ## sjekk om dette kan gjøres bedre
-
+                # v = fsm.driver.elev_get_button_signal(b, f)
+                # if (v and (v != elev.queue[elev.id][f][b])):
+                #     while (fsm.driver.elev_get_button_signal(b, f)):
+                #         pass ## sjekk om dette kan gjøres bedre
+                if (events_NewButtonPush(elev,f,b)):
                     if (elev.network[elev.id] == OFFLINE and b == BTN_CAB):
                         fsm.fsm_onNewOrder(elev, elev.id, f, b)
                         continue
@@ -243,10 +244,10 @@ def main(args=None):
                     order_node.order_publisher.publish(order_newOrderMsg)
 
         #~~~ Check floor sensors ~~~#
-        f = fsm.driver.elev_get_floor_sensor_signal()
-        if ((f != -1) and (f != elev.floor[elev.id])):
-            fsm.fsm_onFloorArrival(elev, elev.id, f)
-
+        #f = fsm.driver.elev_get_floor_sensor_signal()
+        #if ((f != -1) and (f != elev.floor[elev.id])):
+        if (events_onNewFloor(elev)):
+            fsm.fsm_onFloorArrival(elev, elev.id, fsm.driver.elev_get_floor_sensor_signal())
             if (elev.behaviour[elev.id] == DOOR_OPEN):
                 order_orderExecutedMsg = msg_create_orderExecutedMessage(elev)
                 order_node.order_executed_publisher.publish(order_orderExecutedMsg)
@@ -277,11 +278,11 @@ def main(args=None):
 
         #~~~ Order not confirmed ~~~#
         for start_time in sorted(elev.unacknowledgedOrders):
-            f = elev.unacknowledgedOrders[start_time][1]
-            b = elev.unacknowledgedOrders[start_time][2]
             if (timer_orderConfirmedTimeout(start_time)): # order not confirmed
                 order_node.get_logger().error('Order Confirmation Timed Out!')
-                fsm.fsm_onNewOrder(elev,elev.id,f,b)
+                floor = elev.unacknowledgedOrders[start_time][1]
+                btn = elev.unacknowledgedOrders[start_time][2]
+                fsm.fsm_onNewOrder(elev,elev.id,floor,btn)
                 timer_orderConfirmedStop(elev, start_time)
 
         #~~~ Check if elevator has lost power or network connection ~~~#
