@@ -39,6 +39,29 @@ def timer_orderConfirmedStop(elev,start_time):
     elev.unacknowledgedOrders.pop(start_time, None)
     return
 
+#~ Heartbeat Timer
+heartbeat_active  = 0
+heartbeat_endTime = 0
+
+def timer_heartbeatSendTimeout():
+    return (heartbeat_active and (time.time() > heartbeat_endTime))
+
+def timer_heartbeatReceiveTimeout(start_time):
+    return (time.time() > start_time + TIME_HEARTBEAT_RECEIVE)
+
+def timer_heartbeatRestart():
+    global heartbeat_active
+    heartbeat_active = 0
+    timer_heartbeatStart()
+    return
+
+def timer_heartbeatStart():
+    global heartbeat_active
+    global heartbeat_endTime
+    heartbeat_active  = 1
+    heartbeat_endTime = time.time() + TIME_HEARTBEAT_SEND
+    return
+
 
 #~ Mechanical Error Watchdog Timer
 exec_active  = 0
@@ -58,25 +81,5 @@ def timer_executionStart():
 def timer_executionStop():
     global exec_active
     exec_active = 0
-
-    return
-
-#~ Heartbeat Timer
-heartbeat_active  = 0
-heartbeat_endTime = 0
-
-def timer_heartbeatTimeout():
-    return (heartbeat_active and (time.time() > heartbeat_endTime))
-
-def timer_heartbeatStop():
-    global heartbeat_active
-    heartbeat_active = 0
-    return
-
-def timer_heartbeatStart():
-    global heartbeat_active
-    global heartbeat_endTime
-    heartbeat_active  = 1
-    heartbeat_endTime = time.time() + TIME_HEARTBEAT
 
     return

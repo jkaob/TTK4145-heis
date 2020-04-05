@@ -10,6 +10,7 @@ class LocalElevator:
         self.network                = {} #Key = Elevator ID || Val = Network status
         self.queue                  = {} #Key = Elevator ID || Val = Order matrix
         self.unacknowledgedOrders   = {} #Key = Start time  || Val = Elevator ID, floor, btn
+        self.heartbeat              = {} #Key = Elevator ID || Val = Time of last received heartbeat
         if (queue == None):
             matrix = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
             self.queue[self.id]     = matrix

@@ -13,12 +13,6 @@ from ros2_msg.msg import OrderConfirmed
 from status import LocalElevator
 from constants import *
 
-#~ Creates heartbeat message to send regurarly
-def msg_create_heartbeatMessage(elev):
-        msg             = Heartbeat()
-        msg.id          = elev.id
-
-        return msg
 
 #~ Creates message to send on initialization
 def msg_create_initMessage(elev, initmode):
@@ -88,6 +82,11 @@ def msg_create_nodeMessage(elev, knownID, initmode):
                 msg.queue[floor*N_BUTTONS + btn] = int(elev.queue[elev.id][floor][btn]) #Mapping 2D -> 1D array
             msg.cabqueue[floor] = elev.queue[knownID][floor][BTN_CAB]
 
+        return msg
+
+#~ Creates heartbeat message to send regurarly
+def msg_create_heartbeatMessage(elev):
+        msg             = msg_create_statusMessage(elev)
         return msg
 
 #~ Copies data from message into the elevator

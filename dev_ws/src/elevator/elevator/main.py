@@ -67,7 +67,7 @@ class ElevatorNode(Node):
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
-    #    self.order_heartbeat_subscriber = self.create_subscription(Heartbeat, 'heartbeat', self.heartbeat_callback,10)
+        self.order_heartbeat_subscriber = self.create_subscription(Heartbeat, 'heartbeat', self.heartbeat_callback,10)
 
         #~ Creating publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
@@ -81,17 +81,19 @@ class ElevatorNode(Node):
         return
 
   #~~~ Callback functions ~~~#
-
-    # def heartbeat_callback(self,msg):
-    #     elev.heartbeat[msg.id] = get time now;
-    # legg til at heisen funker , typ status ellerno
+    def heartbeat_callback(self, msg):
+        if (msg.id == elev.id):
+            return
+        elev.heartbeat[msg.id] = time.time();
+        msg_update_elev(elev, msg)
+        return
 
     #~ Callback for when an elevator initializes
     def init_callback(self, msg):
         if (msg.id == elev.id):
             return
 
-        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
+        self.get_logger().warn('Init from id %d received!' %(msg.id))
         msg_update_elev(elev, msg)
 
         if (msg.initmode == RECONNECT) or (msg.id not in elev.queue):
@@ -106,7 +108,7 @@ class ElevatorNode(Node):
         if (msg.id == elev.id):
             return
 
-        self.get_logger().warn('Node from id %d received!\n' %(msg.id))
+        self.get_logger().warn('Node from id %d received!' %(msg.id))
         msg_update_elev(elev, msg)
 
         if (msg.id not in elev.queue):
@@ -185,7 +187,7 @@ class ElevatorNode(Node):
                 dir         = elev_copy.direction[id]
                 behaviour   = elev_copy.behaviour[id]
 
-                single_elev_copy = SingleElevatorCopy(id, floor, behaviour, dir, queue)
+                single_elev_copy = LocalElevator(id, floor, behaviour, dir, queue)
                 single_elev_copy.queue[id][msg.floor][msg.button] = 1
                 duration = distributor_timeToIdle(single_elev_copy)
 
@@ -292,22 +294,16 @@ def main(args=None):
                 timer_orderConfirmedStop(elev, start_time)
 
         #~ Send heartbeat
-        if (elev.network[elev.id] == ONLINE and timer_heartbeatTimeout()):
-            timer_heartbeatStop()
+        if (elev.network[elev.id] == ONLINE and timer_heartbeatSendTimeout()):
             heartbeatMsg = msg_create_heartbeatMessage(elev)
-            Elevator.heartbeat_publisher.publish(heartbeatMsg)
-            timer_heartbeatStart()
+            elev.heartbeat_publisher.publish(heartbeatMsg)
+            timer_heartbeatRestart()
 
         #~ Heartbeat timeout
-        # for start_time in sorted(elev.hearBeats_soimethingeifngngferjingriufv):
-        #     if (timer_orderConfirmedTimeout(start_time)): # Endre til at heartbeat er for treg
-        #         Elevator.get_logger().error('Order Confirmation Timed Out!')
-        #         floor = elev.unacknowledgedOrders[start_time][1]
-        #         btn = elev.unacknowledgedOrders[start_time][2]
-        #         fsm_onNewOrder(elev,elev.id,floor,btn)
-        #         timer_orderConfirmedStop(elev, start_time)
-
-
+        for id in sorted(elev.hearbeat):
+            if (timer_heartbeatReceiveTimeout(elev.hearbeat[id])):
+                Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
+                elev.network[ID] == OFFLINE
 
         #~ Check if elevator has lost power or network connection
         # try:

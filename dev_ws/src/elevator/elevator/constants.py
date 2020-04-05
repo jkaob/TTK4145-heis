@@ -34,7 +34,8 @@ TIME_BETWEEN_FLOORS = 5     # Seconds it takes to travel between floors
 TIME_DOOR_OPEN      = 3.0   # Seconds door is kept open
 TIME_ORDER_TIMEOUT  = 1     # Seconds before Order Confirmed-Timeout
 TIME_EXEC_TIMEOUT   = 9     # Seconds before Mechanical Error-Timeout
-TIME_HEARTBEAT      = 5
+TIME_HEARTBEAT_SEND = 3     # How often you send harbeat message
+TIME_HEARTBEAT_RECEIVE = 8  # Seconds befor heartbeat is considered dead
 
 #~ Message types
 MSG_INIT            = 0
