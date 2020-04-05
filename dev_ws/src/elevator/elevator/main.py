@@ -67,7 +67,7 @@ class ElevatorNode(Node):
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
-        self.order_heartbeat_subscriber = self.create_subscription(Heartbeat, 'heartbeat', self.heartbeat_callback,10)
+        self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,10)
 
         #~ Creating publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
@@ -76,7 +76,7 @@ class ElevatorNode(Node):
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)
         self.order_confirmed_publisher  = self.create_publisher(OrderConfirmed, 'confirmed_orders', 10)
-        self.heartbeat_publisher        = self.create_publisher(Heartbeat, 'heartbeat', 10)
+        self.heartbeat_publisher        = self.create_publisher(Status, 'heartbeat', 10)
 
         return
 
@@ -296,45 +296,14 @@ def main(args=None):
         #~ Send heartbeat
         if (elev.network[elev.id] == ONLINE and timer_heartbeatSendTimeout()):
             heartbeatMsg = msg_create_heartbeatMessage(elev)
-            elev.heartbeat_publisher.publish(heartbeatMsg)
+            Elevator.heartbeat_publisher.publish(heartbeatMsg)
             timer_heartbeatRestart()
 
         #~ Heartbeat timeout
-        for id in sorted(elev.hearbeat):
+        for id in sorted(elev.heartbeat):
             if (timer_heartbeatReceiveTimeout(elev.hearbeat[id])):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
                 elev.network[ID] == OFFLINE
-
-        #~ Check if elevator has lost power or network connection
-        # try:
-        #     #~ Throws an exception if the elevator can not connect to network
-        #     local_ip = util_getLocalIp()
-        #     if (events_offlineAndNoOrders(elev)):
-        #         elev.network[elev.id] = ONLINE
-        #         initMsg = msg_create_initMessage(elev, RECONNECT)
-        #         time.sleep(0.5)
-        #         print('WE ARE NOW ONLINE')
-        #         Elevator.init_publisher.publish(initMsg)
-        #     else:
-        #         for id in sorted(elev.queue):
-        #             if (events_otherElevOffline(elev,id)):
-        #                 print('OTHER ELEVATOR IS OFFLINE:    %d'%id)
-        #                 elev.network[id] = OFFLINE
-        #                 for f in range(N_FLOORS):
-        #                     for b in range(N_BUTTONS):
-        #                         if (b == BTN_CAB or elev.queue[id][f][b] == 0):
-        #                             continue
-        #                             newOrderMsg = messages_createMessage(elev, MSG_NEW_ORDER, f, b)
-        #                             Elevator.order_publisher.publish(newOrderMsg)
-        #                             elev.queue[id][f][b] = 0
-        # except:
-        #     #print("THIS ELEVATOR IS NOW OFFLINE!")
-        #     elev.network[elev.id] = OFFLINE
-        #     for f in range(N_FLOORS):
-        #         for b in range(N_BUTTONS):
-        #             if (b == BTN_CAB):
-        #                 continue
-        #             elev.queue[elev.id][f][b] = 0
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):

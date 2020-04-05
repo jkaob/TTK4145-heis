@@ -1,7 +1,6 @@
 import rclpy
 
 #~ Message formats
-from ros2_msg.msg import Heartbeat
 from ros2_msg.msg import Init
 from ros2_msg.msg import NodeMsg
 from ros2_msg.msg import Status
@@ -86,8 +85,8 @@ def msg_create_nodeMessage(elev, knownID, initmode):
 
 #~ Creates heartbeat message to send regurarly
 def msg_create_heartbeatMessage(elev):
-        msg             = msg_create_statusMessage(elev)
-        return msg
+        return msg_create_statusMessage(elev)
+
 
 #~ Copies data from message into the elevator
 def msg_update_elev(elev, msg):
