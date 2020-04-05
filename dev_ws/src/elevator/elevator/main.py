@@ -60,7 +60,7 @@ class ElevatorNode(Node):
     def __init__(self):
         super().__init__('elev_node_'+str(local_id))
 
-        #~ Subscribers for listening to topics
+        #~ Creating subscribers for listening to topics
         self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
         self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 10)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 10)
@@ -68,7 +68,7 @@ class ElevatorNode(Node):
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
 
-        #~ Publishers for sending to topics
+        #~ Creating publishers for sending to topics
         self.init_publisher             = self.create_publisher(Init, 'init', 10)
         self.node_publisher             = self.create_publisher(NodeMsg, 'node', 10)
         self.status_publisher           = self.create_publisher(Status, 'status', 10)
@@ -79,14 +79,29 @@ class ElevatorNode(Node):
         return
 
   #~~~ Callback functions ~~~#
+
+    #~ Callback for when an elevator initializes
+    def init_callback(self, msg):
+        if (msg.id == elev.id):
+            return
+
+        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
+        msg_update_elev(elev, msg)
+
+        if (msg.initmode == RECONNECT or msg.id not in elev.queue):
+                elev.queue[msg.id]  = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
+        node_msg = msg_create_nodeMessage(elev, msg.id, msg.initmode)
+        self.node_publisher.publish(node_msg)
+
+        return
+
+    #~ Callback for when an elevator responds to a new initialization
     def node_callback(self, msg):
         if (msg.id == elev.id):
             return
+
         self.get_logger().warn('Node from id %d received!\n' %(msg.id))
-        elev.floor[msg.id]      = msg.floor
-        elev.behaviour[msg.id]  = msg.behaviour
-        elev.direction[msg.id]  = msg.direction
-        elev.network[msg.id]    = msg.network
+        msg_update_elev(elev, msg)
 
         if (msg.id not in elev.queue):
             elev.queue[msg.id] = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
@@ -94,47 +109,30 @@ class ElevatorNode(Node):
         for f in range(N_FLOORS):
             for b in range(N_BUTTONS):
                 elev.queue[msg.id][f][b] = msg.queue[f*N_BUTTONS + b] #Mapping 1D -> 2D array
-            if (msg.initmode == RESTART and msg.cabqueue[f] == 1 and msg.knownid == elev.id):
+            if ((msg.initmode == RESTART) and (msg.cabqueue[f] == 1) and (msg.knownid == elev.id)):
                 fsm_onNewOrder(elev, elev.id, f, BTN_CAB)
-
         return
 
-    def init_callback(self, msg):
-        if (msg.id == elev.id):
-            return
-        self.get_logger().warn('Init from id %d received!\n' %(msg.id))
-        elev.floor[msg.id]      = msg.floor
-        elev.behaviour[msg.id]  = msg.behaviour
-        elev.direction[msg.id]  = msg.direction
-        elev.network[msg.id]    = msg.network
-
-        if (msg.initmode == RECONNECT or msg.id not in elev.queue):
-                elev.queue[msg.id]  = [[0 for b in range(N_BUTTONS)] for f in range(N_FLOORS)]
-
-        node_msg = msg_create_nodeMessage(elev, msg.id, msg.initmode)
-        self.node_publisher.publish(node_msg)
-
-        return
-
+    #~ Callback for when an elevator updates its state
     def status_callback(self, msg):
         if (msg.id == elev.id):
             return
-        elev.floor[msg.id]      = msg.floor
-        elev.behaviour[msg.id]  = msg.behaviour
-        elev.direction[msg.id]  = msg.direction
-        elev.network[msg.id]    = msg.network
+
+        msg_update_elev(elev, msg)
 
         if (msg.network == OFFLINE):
             for f in range(N_FLOORS):
                 for b in range(N_BUTTONS):
                     if (b == BTN_CAB or elev.queue[msg.id][f][b] == 0):
                         continue
+
                     order_newOrderMsg = msg_create_newOrderMessage(elev, f, b)
                     self.order_publisher.publish(order_newOrderMsg)
                     elev.queue[msg.id][f][b] = 0
 
         return
 
+    #~ Callback for when an elevator confirms an order
     def order_confirmed_callback(self, msg):
         for start_time in sorted(elev.unacknowledgedOrders):
             id      = elev.unacknowledgedOrders[start_time][0]
@@ -146,12 +144,14 @@ class ElevatorNode(Node):
                 fsm.fsm_onNewOrder(elev, id, floor, btn)
         return
 
+    #~ Callback for when an elevator successfully executes an order
     def order_executed_callback(self, msg):
         self.get_logger().warn('Order executed at ID: %d, Floor: %d' %(msg.id, msg.floor))
         if (msg.id != elev.id):
             fsm.fsm_onFloorArrival(elev, msg.id, msg.floor)
         return
 
+    #~ Callback for when an elevator has a new order
     def order_callback(self, msg):
         self.get_logger().info('New order from: %d, Floor: %d, Button: %s\n' %(msg.id, msg.floor, msg.button))
 
@@ -162,8 +162,8 @@ class ElevatorNode(Node):
 
         else:
 #################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
-            min_id = elev.id          # ID of elevator with the least cost
-            min_duration = 999  # Time duration of elev with least cost
+            min_id          = elev.id   # ID of elevator with the least cost
+            min_duration    = 999       # Time duration of elev with least cost
 
             elev_copy = copy.deepcopy(elev)
 
@@ -202,6 +202,7 @@ class ElevatorNode(Node):
                 #Add to unacknowledgedOrders
                 timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
         return
+
 
 
 ############### MAIN LOOP #####################
