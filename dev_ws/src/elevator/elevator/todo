@@ -1,22 +1,28 @@
 
 ### TODO DEV ###
 - Fix lights (update all lights on status)
-- Order executed timeout (detect hardware error)
 - Test med pakketap
 - Når en heis faller av nettet, kopier køen osv
 - Matrise generering
 - Code quality & file cleanup
 
-- Cab orders when offline 
+- Cab orders when offline
+
+-HearBeat:
+  - Dictionary med tidene - Ala unacknowledgedOrders
+  - HearBeat callback - Skriv ordentlig
+  - Heartbeat Timemot check i main
+  - Bruk status som heartbeat melding
 
 # UNDER WORK
 - Detektere om denne heisen har mistet nett (ping google?), begynt main.py linje 278
 
 # DONE
+- some cleanup: changed order_node to Elevator. changed message names. added comments
+- Order executed timeout (detect hardware error)
 - Write create message functions
 - Fix hardcoded path in fsm.py
 - Key error, line 95 in  order_callback, f = elev_copy.floor[id]
-- Change order_node name
 - Execute cab orders locally (they are served globally now)
 - Cost funtion
     - When an elevator is Idle at a floor, it should always take new orders on that floor

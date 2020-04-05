@@ -7,6 +7,9 @@ DIRN_DOWN           = -1 # Down
 DIRN_STOP           = 0  # Stop
 DIRN_UP             = 1  # Up
 
+#~ Floor sensor
+BETWEEN_FLOORS      = -1
+
 #~ Buttons
 BTN_HALL_UP         = 0  # Hall Up
 BTN_HALL_DOWN       = 1  # Hall Down
@@ -31,6 +34,7 @@ TIME_BETWEEN_FLOORS = 5     # Seconds it takes to travel between floors
 TIME_DOOR_OPEN      = 3.0   # Seconds door is kept open
 TIME_ORDER_TIMEOUT  = 1     # Seconds before Order Confirmed-Timeout
 TIME_EXEC_TIMEOUT   = 9     # Seconds before Mechanical Error-Timeout
+TIME_HEARTBEAT      = 5
 
 #~ Message types
 MSG_INIT            = 0

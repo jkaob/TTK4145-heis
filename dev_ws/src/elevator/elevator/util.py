@@ -1,6 +1,9 @@
 import status
 import os
 import sys
+import platform    # For getting the operating system name
+import subprocess  # For executing a shell command
+import socket
 from ctypes import *
 from constants import *
 
@@ -77,3 +80,29 @@ def util_setAllLights(elev): #Call this function when new order is done, as call
                 else:
                     driver.elev_set_button_lamp(b, f, 0)
     return
+
+def util_ping(target_ip):
+    """
+    Returns True if host (str) responds to a ping request.
+    Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+    """
+
+    # Option for the number of packets as a function of
+    param = '-c'
+
+    # Building the command. Ex: "ping -c 1 google.com"
+    command = ['ping', param, '1', target_ip]
+
+    #~ subprocess returns 0 if able to connect~#
+    return not (subprocess.call(command, stdout=subprocess.PIPE))
+
+def util_getLocalIp():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s
+
+def util_getTargetIp(elev,id):
+    local_ip = util_getLocalIp()
+    blank_ip = local_ip.getsockname()[0][:-len(str(elev.id))]
+    target_ip = blank_ip + str(id)
+    return target_ip
