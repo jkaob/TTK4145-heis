@@ -61,22 +61,22 @@ class ElevatorNode(Node):
         super().__init__('elev_node_'+str(local_id))
 
         #~ Creating subscribers for listening to topics
-        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
-        self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 10)
-        self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 10)
-        self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
+        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 3)
+        self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 3)
+        self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 0)
+        self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 0)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
-        self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,10)
+        self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,0)
 
         #~ Creating publishers for sending to topics
-        self.init_publisher             = self.create_publisher(Init, 'init', 10)
-        self.node_publisher             = self.create_publisher(NodeMsg, 'node', 10)
-        self.status_publisher           = self.create_publisher(Status, 'status', 10)
+        self.init_publisher             = self.create_publisher(Init, 'init', 3)
+        self.node_publisher             = self.create_publisher(NodeMsg, 'node', 3)
+        self.status_publisher           = self.create_publisher(Status, 'status', 0)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)
         self.order_confirmed_publisher  = self.create_publisher(OrderConfirmed, 'confirmed_orders', 10)
-        self.heartbeat_publisher        = self.create_publisher(Status, 'heartbeat', 10)
+        self.heartbeat_publisher        = self.create_publisher(Status, 'heartbeat', 0)
 
         return
 
@@ -250,6 +250,9 @@ def main(args=None):
     while (rclpy.ok()):
         rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
 
+        for id in sorted(elev.network):
+            print('%d : %d' %(id,elev.network[id]))
+
         #~ Check for new button push
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
@@ -286,11 +289,14 @@ def main(args=None):
             elev.network[elev.id] = OFFLINE
             statusMsg  = msg_create_statusMessage(elev)
             Elevator.status_publisher.publish(statusMsg)
+            rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
 
             fsm_onMechanicalError(elev)
 
             initMsg    = msg_create_initMessage(elev, RECONNECT)
             Elevator.init_publisher.publish(initMsg)
+            rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
+
 
         #~ Checking timeouts on the unconfirmed orders
         for start_time in sorted(elev.unacknowledgedOrders):
@@ -311,7 +317,14 @@ def main(args=None):
         for id in sorted(elev.heartbeat):
             if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
+                rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
                 elev.network[id] == OFFLINE
+                for floor in range(N_FLOORS):
+                    for btn in range(N_BUTTONS):
+                        if (events_republishOrder(elev, id, floor, btn)):
+                            newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
+                            Elevator.order_publisher.publish(newOrderMsg)
+                            elev.queue[msg.id][floor][btn] = 0
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
