@@ -120,7 +120,8 @@ class ElevatorNode(Node):
                 elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
 
             #checking if initialized elevator should retrieve its old cab-queue:
-            if ((msg.initmode == RESTART) and (msg.cabqueue[floor] == 1) and (msg.knownid == elev.id)):
+            #if ((msg.initmode == RESTART) and (msg.cabqueue[floor] == 1) and (msg.knownid == elev.id)):
+            if (events_getOldCabOrders(elev, msg, floor)):
                 fsm_onNewOrder(elev, elev.id, floor, BTN_CAB)
 
         return
@@ -135,23 +136,24 @@ class ElevatorNode(Node):
         if (msg.network == OFFLINE):
             for floor in range(N_FLOORS):
                 for btn in range(N_BUTTONS):
-                    if (btn == BTN_CAB or elev.queue[msg.id][floor][btn] == 0):
-                        continue
-
-                    newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
-                    self.order_publisher.publish(newOrderMsg)
-                    elev.queue[msg.id][floor][btn] = 0
+                    #if (btn == BTN_CAB or elev.queue[msg.id][floor][btn] == 0):
+                        #continue
+                    if (events_republishOrder(elev, msg.id, floor, btn)):
+                        newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
+                        self.order_publisher.publish(newOrderMsg)
+                        elev.queue[msg.id][floor][btn] = 0
 
         return
 
     #~ Callback for when an elevator confirms an order
     def order_confirmed_callback(self, msg):
         for start_time in sorted(elev.unacknowledgedOrders):
-            id      = elev.unacknowledgedOrders[start_time][0]
-            floor   = elev.unacknowledgedOrders[start_time][1]
-            btn     = elev.unacknowledgedOrders[start_time][2]
+            # id      = elev.unacknowledgedOrders[start_time][0]
+            # floor   = elev.unacknowledgedOrders[start_time][1]
+            # btn     = elev.unacknowledgedOrders[start_time][2]
 
-            if (msg.id == id and msg.floor == floor and msg.button == btn):
+            #if (msg.id == id and msg.floor == floor and msg.button == btn):
+            if (events_orderMatch(elev, msg, start_time)):
                 timer_orderConfirmedStop(elev, start_time)
                 fsm_onNewOrder(elev, id, floor, btn)
         return
@@ -257,7 +259,7 @@ def main(args=None):
             fsm_onFloorArrival(elev, elev.id, driver.elev_get_floor_sensor_signal())
             if (elev.behaviour[elev.id] == DOOR_OPEN):
                 orderExecutedMsg  = msg_create_orderExecutedMessage(elev)
-                statusMsg               = msg_create_statusMessage(elev)
+                statusMsg         = msg_create_statusMessage(elev)
                 Elevator.order_executed_publisher.publish(orderExecutedMsg)
                 Elevator.status_publisher.publish(statusMsg)
 

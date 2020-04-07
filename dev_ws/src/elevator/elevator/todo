@@ -8,6 +8,8 @@
 
 - Cab orders when offline
 
+-Endre fsm_onNewOrder til fsm_OnOrderConfirmed - Det er slik den brukes i dag
+
 -HearBeat:
   - Dictionary med tidene - Ala unacknowledgedOrders
   - HearBeat callback - Skriv ordentlig

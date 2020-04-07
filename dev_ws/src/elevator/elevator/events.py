@@ -30,3 +30,16 @@ def events_otherElevOffline(elev, id):
     target_ip = util_getTargetIp(elev,id)
     response = util_ping(target_ip)
     return ((response == OFFLINE) and (elev.network[id] == ONLINE))
+
+def events_getOldCabOrders(elev, msg, floor):
+    return (msg.initmode == RESTART) and (msg.cabqueue[floor] == 1) and (msg.knownid == elev.id)
+
+def events_republishOrder (elev, id, floor, btn):
+    return (btn != BTN_CAB and elev.queue[id][floor][btn] == 1)
+
+def events_orderMatch(elev, msg, start_time):
+    id      = elev.unacknowledgedOrders[start_time][0]
+    floor   = elev.unacknowledgedOrders[start_time][1]
+    btn     = elev.unacknowledgedOrders[start_time][2]
+
+    return (msg.id == id and msg.floor == floor and msg.button == btn)
