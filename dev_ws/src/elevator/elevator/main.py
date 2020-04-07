@@ -155,6 +155,9 @@ class ElevatorNode(Node):
             #if (msg.id == id and msg.floor == floor and msg.button == btn):
             if (events_orderMatch(elev, msg, start_time)):
                 timer_orderConfirmedStop(elev, start_time)
+                id      = elev.unacknowledgedOrders[start_time][0]
+                floor   = elev.unacknowledgedOrders[start_time][1]
+                btn     = elev.unacknowledgedOrders[start_time][2]
                 fsm_onNewOrder(elev, id, floor, btn)
         return
 
@@ -303,9 +306,9 @@ def main(args=None):
 
         #~ Heartbeat timeout
         for id in sorted(elev.heartbeat):
-            if (timer_heartbeatReceiveTimeout(elev.hearbeat[id])):
+            if (timer_heartbeatReceiveTimeout(elev.heartbeat[id])):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
-                elev.network[ID] == OFFLINE
+                elev.network[id] == OFFLINE
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
