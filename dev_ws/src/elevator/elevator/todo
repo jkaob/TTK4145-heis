@@ -11,10 +11,7 @@
 -Endre fsm_onNewOrder til fsm_OnOrderConfirmed - Det er slik den brukes i dag
 
 -HearBeat:
-  - Dictionary med tidene - Ala unacknowledgedOrders
-  - HearBeat callback - Skriv ordentlig
-  - Heartbeat Timemot check i main
-  - Bruk status som heartbeat melding
+  - Teste med pakketap
 
 # UNDER WORK
 - Detektere om denne heisen har mistet nett (ping google?), begynt main.py linje 278
