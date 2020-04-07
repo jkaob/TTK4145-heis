@@ -250,9 +250,6 @@ def main(args=None):
     while (rclpy.ok()):
         rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
 
-        for id in sorted(elev.network):
-            print('%d : %d' %(id,elev.network[id]))
-
         #~ Check for new button push
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
@@ -318,13 +315,13 @@ def main(args=None):
             if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
                 rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
-                elev.network[id] == OFFLINE
+                elev.network[id] = OFFLINE
                 for floor in range(N_FLOORS):
                     for btn in range(N_BUTTONS):
                         if (events_republishOrder(elev, id, floor, btn)):
                             newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                             Elevator.order_publisher.publish(newOrderMsg)
-                            elev.queue[msg.id][floor][btn] = 0
+                            elev.queue[id][floor][btn] = 0
 
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
