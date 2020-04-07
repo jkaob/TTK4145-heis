@@ -239,8 +239,11 @@ def main(args=None):
     initMsg = msg_create_initMessage(elev, RESTART)
     Elevator.init_publisher.publish(initMsg)
 
+    heartbeatMsg = msg_create_heartbeatMessage(elev)
+    Elevator.heartbeat_publisher.publish(heartbeatMsg)
+
     rclpy.spin_once(Elevator, executor=None, timeout_sec=5)
-    Elevator.get_logger().warn("Init message sent from self!")
+    Elevator.get_logger().warn("Init and heartbeat message sent from self!")
 
     timer_heartbeatStart()
 
@@ -306,7 +309,7 @@ def main(args=None):
 
         #~ Heartbeat timeout
         for id in sorted(elev.heartbeat):
-            if (timer_heartbeatReceiveTimeout(elev.heartbeat[id])):
+            if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
                 elev.network[id] == OFFLINE
 
