@@ -154,10 +154,10 @@ class ElevatorNode(Node):
 
             #if (msg.id == id and msg.floor == floor and msg.button == btn):
             if (events_orderMatch(elev, msg, start_time)):
-                timer_orderConfirmedStop(elev, start_time)
                 id      = elev.unacknowledgedOrders[start_time][0]
                 floor   = elev.unacknowledgedOrders[start_time][1]
                 btn     = elev.unacknowledgedOrders[start_time][2]
+                timer_orderConfirmedStop(elev, start_time)
                 fsm_onNewOrder(elev, id, floor, btn)
         return
 
