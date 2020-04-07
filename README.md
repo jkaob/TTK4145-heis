@@ -30,14 +30,15 @@ To talk between ros nodes on different computers you need to set a correct domai
 ```
 export ROS_DOMAIN_ID=42
 ```
-## TODO
-Skal vi lage en 'event'modul?
+## VirtualBox
+#### 1 Download Oracle VM VirtualBox for Ubuntu 18.04
+https://www.virtualbox.org/wiki/Linux_Downloads
 
-Altså lage en modul som inneholder
-  NewButtonPushed - Som tar for seg:
-     for f in range(N_FLOORS):
-            for b in range(N_BUTTONS):
-                v = fsm.driver.elev_get_button_signal(b, f)
-                if (v and (v != elev.queue[elev.id][f][b])):
-Osv...
+#### 2 Følg denne guiden 
+https://linuxhint.com/install_ubuntu_18-04_virtualbox/
 
+#### 3 Følg denne guiden
+https://www.techrepublic.com/blog/diy-it-guy/using-virtualbox-vms-on-your-networks-subnet/?fbclid=IwAR1mAdVPzRxTlLvwHgCc46JEf08iOLEGD9CQWDCLc_SSUJ_nK4lST82tbZc
+
+#### 4 Installeringer
+Start VM og last ned ROS og Colcon som beskrevet over på VM
