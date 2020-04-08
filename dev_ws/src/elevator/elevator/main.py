@@ -31,7 +31,6 @@ from timer          import *
 from events         import *
 from util           import *
 from status         import LocalElevator
-from statusCopy     import SingleElevatorCopy
 
 
 #~~~ Include driver ~~~#
@@ -119,8 +118,6 @@ class ElevatorNode(Node):
                 #Mapping 1D -> 2D array
                 elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
 
-            #checking if initialized elevator should retrieve its old cab-queue:
-            #if ((msg.initmode == RESTART) and (msg.cabqueue[floor] == 1) and (msg.knownid == elev.id)):
             if (events_getOldCabOrders(elev, msg, floor)):
                 fsm_onNewOrder(elev, elev.id, floor, BTN_CAB)
 
@@ -136,8 +133,6 @@ class ElevatorNode(Node):
         if (msg.network == OFFLINE):
             for floor in range(N_FLOORS):
                 for btn in range(N_BUTTONS):
-                    #if (btn == BTN_CAB or elev.queue[msg.id][floor][btn] == 0):
-                        #continue
                     if (events_republishOrder(elev, msg.id, floor, btn)):
                         newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                         self.order_publisher.publish(newOrderMsg)
@@ -148,11 +143,6 @@ class ElevatorNode(Node):
     #~ Callback for when an elevator confirms an order
     def order_confirmed_callback(self, msg):
         for start_time in sorted(elev.unacknowledgedOrders):
-            # id      = elev.unacknowledgedOrders[start_time][0]
-            # floor   = elev.unacknowledgedOrders[start_time][1]
-            # btn     = elev.unacknowledgedOrders[start_time][2]
-
-            #if (msg.id == id and msg.floor == floor and msg.button == btn):
             if (events_orderMatch(elev, msg, start_time)):
                 id      = elev.unacknowledgedOrders[start_time][0]
                 floor   = elev.unacknowledgedOrders[start_time][1]
@@ -174,34 +164,14 @@ class ElevatorNode(Node):
 
         if (msg.button == BTN_CAB):
             fsm_onNewOrder(elev,msg.id,msg.floor,msg.button)
-            self.get_logger().info('New cab order distributed to: %s\n' %(msg.id))
+            self.get_logger().info('New cab order distributed to: %s' %(msg.id))
             return
 
         else:
-#################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
-            min_id          = elev.id   # ID of elevator with the least cost
-            min_duration    = 999       # Time duration of elev with least cost
-
             elev_copy = copy.deepcopy(elev)
+            min_id = distributer_id(elev_copy)
 
-            for id in sorted(elev_copy.queue):
-                if (elev_copy.network[id] == OFFLINE):
-                    continue
-                floor       = elev_copy.floor[id]
-                queue       = elev_copy.queue[id]
-                dir         = elev_copy.direction[id]
-                behaviour   = elev_copy.behaviour[id]
-
-                single_elev_copy = LocalElevator(id, floor, behaviour, dir, queue)
-                single_elev_copy.queue[id][msg.floor][msg.button] = 1
-                duration = distributor_timeToIdle(single_elev_copy)
-
-                if (duration < min_duration):
-                    min_id = id
-                    min_duration = duration
-###################################################################################
-
-            self.get_logger().warn('New hall order distributed to: %s\n' %(min_id))
+            self.get_logger().warn('New hall order distributed to: %s' %(min_id))
 
             if (elev.id == min_id):
                 fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
@@ -216,7 +186,6 @@ class ElevatorNode(Node):
                 self.status_publisher.publish(statusMsg)
 
             else:
-                #Add to unacknowledgedOrders
                 timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
         return
 

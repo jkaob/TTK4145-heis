@@ -1,19 +1,7 @@
 from constants  import *
 from util       import *
-# How to use this functions
-# When a new order is received via ROS or from your own buttons
-# We must:
-# 0. duration = 0
-# 1. For elevators:
-    #2. elevator copy = elevaor
-    #3. temp duration = distributor_timeToIdle(elevator copy)
-    #4. if temp duration <= duration
-        #id = elevator copy id
-        #duration = temp duration
-#We should now have the id of the elevator that has the least time to serve that order
-#Assign the new order to the corresponding id
 
-def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_IDLE
+def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_IDLE for one single elevator
     duration    = 0
     behaviour   = elev.behaviour[elev.id]
 
@@ -39,5 +27,26 @@ def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_
 
         elev.floor[elev.id] += elev.direction[elev.id]
         duration            += TIME_BETWEEN_FLOORS
-        
+
     return
+
+def distributor_id(elev):
+
+    minimum_duration    = 999       # Time duration of elev with least cost
+    minimum_id          = elev.id   # ID of elevator with the least cost
+
+    for id in sorted(elev.queue):
+        if (elev.network[id] == ONLINE):
+            floor       = elev.floor[id]
+            queue       = elev.queue[id]
+            dir         = elev.direction[id]
+            behaviour   = elev.behaviour[id]
+
+            single_elev = LocalElevator(id, floor, behaviour, dir, queue)
+            single_elev.queue[id][msg.floor][msg.button] = 1
+            duration = distributor_timeToIdle(single_elev)
+
+            if (duration < min_duration):
+                minimum_duration = duration
+                minimum_id = id
+    return minimum_id
