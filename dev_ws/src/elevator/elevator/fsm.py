@@ -119,12 +119,16 @@ def fsm_onMechanicalError(elev):
         # when error, revert direction and go back to previous floor
         while (driver.elev_get_floor_sensor_signal() == BETWEEN_FLOORS) or (driver.elev_get_floor_sensor_signal() == elev.floor[elev.id]):
             driver.elev_set_motor_direction(elev.direction[elev.id]*(-1))
+            if (driver.elev_get_floor_sensor_signal() == 0) or (driver.elev_get_floor_sensor_signal() == N_FLOORS-1):
+                break
 
         driver.elev_set_motor_direction(DIRN_STOP)
         driver.elev_set_door_open_lamp(1)
+        driver.elev_set_floor_indicator(elev.floor[elev.id],0)
         timer_doorsStart()
         elev.floor[elev.id]       = driver.elev_get_floor_sensor_signal()
         elev.behaviour[elev.id]   = DOOR_OPEN
         elev.direction[elev.id]   = DIRN_STOP
         elev.network[elev.id]     = ONLINE
+        driver.elev_set_floor_indicator(elev.floor[elev.id],1)
         return

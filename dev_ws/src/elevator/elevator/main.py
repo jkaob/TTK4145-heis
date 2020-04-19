@@ -197,8 +197,8 @@ def main(args=None):
     try:
         Elevator.destroy_node()
         rclpy.shutdown()
-    except:
         print('Program was not shut down correctly last time.')
+    except:
         pass
 
     rclpy.init(args=args)
