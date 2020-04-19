@@ -65,6 +65,15 @@ sudo iptables -A INPUT -m statistic --mode random --probability 0.2 -j DROP
 ```
 
 ## TODO
+#### Offline cab orders
+Når man mister nett skjer følgende:
+- Om man spammer masse knapper, så får den en ny ordre når den reconnecter og kjører ut av banen
+- Får ikke fjernet ros helt, men sånn får det bare bl
+- Den kjører aldri noe form for reconnect
+
+
+
+#### Er dette gjort?:
 Skal vi lage en 'event'modul?
 
 Altså lage en modul som inneholder

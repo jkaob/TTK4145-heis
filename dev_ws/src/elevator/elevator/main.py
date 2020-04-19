@@ -278,8 +278,6 @@ def main(args=None):
 
         #~ Heartbeat timeout
         for id in sorted(elev.heartbeat):
-            #print(timer_heartbeatReceiveTimeout(elev.heartbeat[id]))
-
             if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
                 rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
@@ -291,7 +289,7 @@ def main(args=None):
                             newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                             Elevator.order_publisher.publish(newOrderMsg)
                             elev.queue[id][floor][btn] = 0
-    
+
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
             driver.elev_set_motor_direction(DIRN_STOP)
