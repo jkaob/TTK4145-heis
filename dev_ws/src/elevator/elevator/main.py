@@ -168,13 +168,13 @@ class ElevatorNode(Node):
             return
 
         else:
-            elev_copy = copy.deepcopy(elev)
-            min_id = distributer_id(elev_copy)
+            elev_copy   = copy.deepcopy(elev)
+            executor_id = distributor_id(elev_copy, msg) #ID of elevator which will take the order
 
-            self.get_logger().warn('New hall order distributed to: %s' %(min_id))
+            self.get_logger().warn('New hall order distributed to: %s' %(executor_id))
 
-            if (elev.id == min_id):
-                fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
+            if (elev.id == executor_id):
+                fsm_onNewOrder(elev, executor_id, msg.floor,msg.button)
                 orderConfirmedMsg = msg_create_orderConfirmedMessage(elev, msg.floor, msg.button)
                 self.order_confirmed_publisher.publish(orderConfirmedMsg)
 
@@ -186,7 +186,7 @@ class ElevatorNode(Node):
                 self.status_publisher.publish(statusMsg)
 
             else:
-                timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
+                timer_orderConfirmedStart(elev, executor_id, msg.floor, msg.button)
         return
 
 
@@ -198,17 +198,18 @@ def main(args=None):
         Elevator.destroy_node()
         rclpy.shutdown()
     except:
-        print('ORDER NOT PURGED')
+        print('Program was not shut down correctly last time.')
         pass
 
     rclpy.init(args=args)
     Elevator = ElevatorNode()
 
     fsm_init(elev)
-    initMsg = msg_create_initMessage(elev, RESTART)
+
+    initMsg         = msg_create_initMessage(elev, RESTART)
     Elevator.init_publisher.publish(initMsg)
 
-    heartbeatMsg = msg_create_heartbeatMessage(elev)
+    heartbeatMsg    = msg_create_heartbeatMessage(elev)
     Elevator.heartbeat_publisher.publish(heartbeatMsg)
 
     rclpy.spin_once(Elevator, executor=None, timeout_sec=5)

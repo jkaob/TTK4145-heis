@@ -1,5 +1,6 @@
 from constants  import *
 from util       import *
+from status     import LocalElevator
 
 def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_IDLE for one single elevator
     duration    = 0
@@ -30,7 +31,7 @@ def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_
 
     return
 
-def distributor_id(elev):
+def distributor_id(elev, msg):
 
     minimum_duration    = 999       # Time duration of elev with least cost
     minimum_id          = elev.id   # ID of elevator with the least cost
@@ -46,7 +47,7 @@ def distributor_id(elev):
             single_elev.queue[id][msg.floor][msg.button] = 1
             duration = distributor_timeToIdle(single_elev)
 
-            if (duration < min_duration):
+            if (duration < minimum_duration):
                 minimum_duration = duration
                 minimum_id = id
     return minimum_id
