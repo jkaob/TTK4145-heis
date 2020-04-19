@@ -81,8 +81,8 @@ class ElevatorNode(Node):
 
   #~~~ Callback functions ~~~#
     def heartbeat_callback(self, msg):
-        if (msg.id == elev.id):
-            return
+        #if (msg.id == elev.id):
+        #    return
         elev.heartbeat[msg.id] = time.time();
         msg_update_elev(elev, msg)
         return
@@ -219,7 +219,6 @@ def main(args=None):
 
     while (rclpy.ok()):
         rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
-
         #~ Check for new button push
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
@@ -247,7 +246,6 @@ def main(args=None):
 
             statusMsg = msg_create_statusMessage(elev)
             Elevator.status_publisher.publish(statusMsg)
-
         #~ Mechanical error-timer timeout
         if (timer_executionTimeout()):
             Elevator.get_logger().error('Mechanical error!')
@@ -264,7 +262,6 @@ def main(args=None):
             Elevator.init_publisher.publish(initMsg)
             rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
 
-
         #~ Checking timeouts on the unconfirmed orders
         for start_time in sorted(elev.unacknowledgedOrders):
             if (timer_orderConfirmedTimeout(start_time)):
@@ -273,7 +270,6 @@ def main(args=None):
                 btn     = elev.unacknowledgedOrders[start_time][2]
                 fsm_onNewOrder(elev, elev.id, floor, btn)
                 timer_orderConfirmedStop(elev, start_time)
-
         #~ Send heartbeat
         if (elev.network[elev.id] == ONLINE and timer_heartbeatSendTimeout()):
             heartbeatMsg = msg_create_heartbeatMessage(elev)
@@ -282,17 +278,20 @@ def main(args=None):
 
         #~ Heartbeat timeout
         for id in sorted(elev.heartbeat):
+            #print(timer_heartbeatReceiveTimeout(elev.heartbeat[id]))
+
             if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
                 Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
                 rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
                 elev.network[id] = OFFLINE
+                if(id == elev.id): continue
                 for floor in range(N_FLOORS):
                     for btn in range(N_BUTTONS):
                         if (events_republishOrder(elev, id, floor, btn)):
                             newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                             Elevator.order_publisher.publish(newOrderMsg)
                             elev.queue[id][floor][btn] = 0
-
+    
         #~~~ Check stop button ~~~#
         if (driver.elev_get_stop_signal()):
             driver.elev_set_motor_direction(DIRN_STOP)

@@ -30,6 +30,40 @@ To talk between ros nodes on different computers you need to set a correct domai
 ```
 export ROS_DOMAIN_ID=42
 ```
+
+## Pakketapssimulering
+#### Finn de rette portene
+ROS/DDS benytter seg av 4 UDP porter som genereses som en fuksjon av ROS_DOMAIN_ID(42 i vårt tilfelle). Mer info om dette finner man her: https://community.rti.com/howto/statically-configure-firewall-let-omg-dds-traffic-through
+
+Tre av fire porter er fast bestemt og er i vårt tilfelle:
+##### 17900
+##### 17912
+##### 17913
+
+Den siste porten finner man ved å bruke følgende kommando:
+```
+lsof -i
+```
+#### Stenge kommunikasjon mellom portene
+Når du har dine fire porter, stenger man enten alle pakker som sendes gjennom de med eksempel:
+
+```
+sudo iptables -A INPUT -p udp --dport 17900 -j DROP
+sudo iptables -A INPUT -p udp --dport 17912 -j DROP
+sudo iptables -A INPUT -p udp --dport 17913 -j DROP
+sudo iptables -A INPUT -p udp --dport 48904 -j DROP
+
+```
+For å kun "miste" en bestemt andel(her 20%) av pakkene kan man bruke eksempelvis:
+```
+sudo iptables -A INPUT -p udp --dport 17900 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 17912 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 17913 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 48904 -j ACCEPT
+
+sudo iptables -A INPUT -m statistic --mode random --probability 0.2 -j DROP
+```
+
 ## TODO
 Skal vi lage en 'event'modul?
 
@@ -40,4 +74,3 @@ Altså lage en modul som inneholder
                 v = fsm.driver.elev_get_button_signal(b, f)
                 if (v and (v != elev.queue[elev.id][f][b])):
 Osv...
-
