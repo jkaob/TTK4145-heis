@@ -1,6 +1,6 @@
 from constants import *
 
-class LocalElevator:
+class Elevator:
 
     def __init__(self, id, floor=None, behaviour=None, direction=None, queue=None):
         self.id                     = id

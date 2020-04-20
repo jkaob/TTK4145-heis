@@ -2,11 +2,8 @@ import threading
 import time
 
 from constants import *
-#Undersøk denne litt mer
 
-
-
-#~ Door Open Watchdog Timer
+#~ Door Open Timer
 doors_active  = 0
 doors_endTime = 0
 
@@ -23,11 +20,10 @@ def timer_doorsStart():
     global doors_endTime
     doors_active  = 1
     doors_endTime = time.time() + TIME_DOOR_OPEN
-
     return
 
 
-#~ Order Confirmed Watchdog Timer
+#~ Order Confirmed Watchdog
 def timer_orderConfirmedTimeout(start_time):
     return (time.time() > start_time + TIME_ORDER_TIMEOUT)
 
@@ -62,8 +58,7 @@ def timer_heartbeatStart():
     heartbeat_endTime = time.time() + TIME_HEARTBEAT_SEND
     return
 
-
-#~ Mechanical Error Watchdog Timer
+#~ Mechanical Error Watchdog
 exec_active  = 0
 exec_endTime = 0
 

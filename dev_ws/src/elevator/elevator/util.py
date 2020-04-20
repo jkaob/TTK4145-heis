@@ -1,26 +1,25 @@
-import status
-import os
-import sys
-import platform    # For getting the operating system name
-import subprocess  # For executing a shell command
-import socket
-from ctypes import *
-from constants import *
+import  os
+import  sys
+import  platform
+import  subprocess
+import  socket
+from    ctypes     import *
 
-###### LOAD DRIVER ########
+import  elevClass
+from    constants  import *
+
+#~ Load Driver
 driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/elevator/elevator/driver/driver.so')
 driver = cdll.LoadLibrary(os.path.abspath(driver_path))
-#driver.elev_init(ELEV_MODE) #Simulator / Physical model
-###########################
 
-def util_orderAbove(elev): #Ta inn status klassen til seg selv
+def util_orderAbove(elev):
     for f in range(elev.floor[elev.id] + 1, N_FLOORS):
         for b in range(N_BUTTONS):
             if (elev.queue[elev.id][f][b]):
                 return 1
     return 0
 
-def util_orderBelow(elev): #Ta inn status klassen til seg selv
+def util_orderBelow(elev):
     for f in range(0, elev.floor[elev.id]):
         for b in range(N_BUTTONS):
             if (elev.queue[elev.id][f][b]):
@@ -68,7 +67,7 @@ def util_clearAtCurrentFloor(elev):
     return
 
 
-def util_setAllLights(elev): #Call this function when new order is done, as callback, or distributed
+def util_setAllLights(elev):
     for f in range(N_FLOORS):
         for b in range(N_BUTTONS):
             for id in sorted(elev.queue):
@@ -81,28 +80,7 @@ def util_setAllLights(elev): #Call this function when new order is done, as call
                     driver.elev_set_button_lamp(b, f, 0)
     return
 
-def util_ping(target_ip):
-    """
-    Returns True if host (str) responds to a ping request.
-    Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
-    """
-
-    # Option for the number of packets as a function of
-    param = '-c'
-
-    # Building the command. Ex: "ping -c 1 google.com"
-    command = ['ping', param, '1', target_ip]
-
-    #~ subprocess returns 0 if able to connect~#
-    return not (subprocess.call(command, stdout=subprocess.PIPE))
-
 def util_getLocalIp():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     return s
-
-def util_getTargetIp(elev,id):
-    local_ip = util_getLocalIp()
-    blank_ip = local_ip.getsockname()[0][:-len(str(elev.id))]
-    target_ip = blank_ip + str(id)
-    return target_ip

@@ -8,10 +8,9 @@ import sys
 import time
 from ctypes import *
 
-#### Add script path for ros compiled files to find them ###
+#~ Add script path for ros compiled files to find them
 install_dir = os.path.join(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(install_dir))
-############################################################
 
 #~ ROS packages
 from rclpy.node   import Node
@@ -30,8 +29,7 @@ from messages       import *
 from timer          import *
 from events         import *
 from util           import *
-from status         import LocalElevator
-from statusCopy     import SingleElevatorCopy
+from elevClass      import Elevator
 
 
 #~~~ Include driver ~~~#
@@ -39,7 +37,7 @@ driver_path = os.path.join(os.path.dirname(__file__), '../../../../../../src/ele
 driver = cdll.LoadLibrary(os.path.abspath(driver_path))
 driver.elev_init(ELEV_MODE) #Simulator / Physical model
 
-## Get IP for this computer ##
+#~ Get IP for this computer
 try:
     local_ip = util_getLocalIp()
     local_id = local_ip.getsockname()[0][-3:] #last 3 characters
@@ -49,28 +47,27 @@ except:
     print("NO ELEVATOR TODAY!")
     print("SHUTTING DOWN!")
     exit()
-###########################
 
-elev = LocalElevator(int(local_id))
+
+elev = Elevator(int(local_id))
 
 #~~~~~~~~# ROS #~~~~~~~~#
-
-class ElevatorNode(Node):
+class Communication(Node):
 
     def __init__(self):
         super().__init__('elev_node_'+str(local_id))
 
         #~ Creating subscribers for listening to topics
-        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 3)
+        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 0)
         self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 3)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 0)
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 0)
-        self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.order_executed_callback, 10)
-        self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.order_confirmed_callback, 10)
+        self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.orderExecuted_callback, 10)
+        self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.orderConfirmed_callback, 10)
         self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,0)
 
         #~ Creating publishers for sending to topics
-        self.init_publisher             = self.create_publisher(Init, 'init', 3)
+        self.init_publisher             = self.create_publisher(Init, 'init', 0)
         self.node_publisher             = self.create_publisher(NodeMsg, 'node', 3)
         self.status_publisher           = self.create_publisher(Status, 'status', 0)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
@@ -82,35 +79,29 @@ class ElevatorNode(Node):
 
   #~~~ Callback functions ~~~#
     def heartbeat_callback(self, msg):
-        if (msg.id == elev.id):
-            return
-        elev.heartbeat[msg.id] = time.time();
-        msg_update_elev(elev, msg)
+        elev.network[msg.id] = ONLINE
+        elev.heartbeat[msg.id] = time.time()
+        msg_update_Elevator(elev, msg)
         return
 
     #~ Callback for when an elevator initializes
     def init_callback(self, msg):
         if (msg.id == elev.id):
             return
-
         self.get_logger().warn('Init from id %d received!' %(msg.id))
-        msg_update_elev(elev, msg)
-
+        msg_update_Elevator(elev, msg)
         if (msg.initmode == RECONNECT) or (msg.id not in elev.queue):
                 elev.queue[msg.id]  = [[0 for btn in range(N_BUTTONS)] for flr in range(N_FLOORS)]
         nodeMsg = msg_create_nodeMessage(elev, msg.id, msg.initmode)
         self.node_publisher.publish(nodeMsg)
-
         return
 
     #~ Callback for when an elevator responds to a new initialization
     def node_callback(self, msg):
         if (msg.id == elev.id):
             return
-
         self.get_logger().warn('Node from id %d received!' %(msg.id))
-        msg_update_elev(elev, msg)
-
+        msg_update_Elevator(elev, msg)
         if (msg.id not in elev.queue):
             elev.queue[msg.id] = [[0 for btn in range(N_BUTTONS)] for flr in range(N_FLOORS)]
 
@@ -118,10 +109,7 @@ class ElevatorNode(Node):
             for btn in range(N_BUTTONS):
                 #Mapping 1D -> 2D array
                 elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
-
-            #checking if initialized elevator should retrieve its old cab-queue:
-            #if ((msg.initmode == RESTART) and (msg.cabqueue[floor] == 1) and (msg.knownid == elev.id)):
-            if (events_getOldCabOrders(elev, msg, floor)):
+            if (events_reobtainCabOrder(elev, msg, floor)):
                 fsm_onNewOrder(elev, elev.id, floor, BTN_CAB)
 
         return
@@ -131,13 +119,10 @@ class ElevatorNode(Node):
         if (msg.id == elev.id):
             return
 
-        msg_update_elev(elev, msg)
-
+        msg_update_Elevator(elev, msg)
         if (msg.network == OFFLINE):
             for floor in range(N_FLOORS):
                 for btn in range(N_BUTTONS):
-                    #if (btn == BTN_CAB or elev.queue[msg.id][floor][btn] == 0):
-                        #continue
                     if (events_republishOrder(elev, msg.id, floor, btn)):
                         newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                         self.order_publisher.publish(newOrderMsg)
@@ -146,13 +131,8 @@ class ElevatorNode(Node):
         return
 
     #~ Callback for when an elevator confirms an order
-    def order_confirmed_callback(self, msg):
+    def orderConfirmed_callback(self, msg):
         for start_time in sorted(elev.unacknowledgedOrders):
-            # id      = elev.unacknowledgedOrders[start_time][0]
-            # floor   = elev.unacknowledgedOrders[start_time][1]
-            # btn     = elev.unacknowledgedOrders[start_time][2]
-
-            #if (msg.id == id and msg.floor == floor and msg.button == btn):
             if (events_orderMatch(elev, msg, start_time)):
                 id      = elev.unacknowledgedOrders[start_time][0]
                 floor   = elev.unacknowledgedOrders[start_time][1]
@@ -162,7 +142,7 @@ class ElevatorNode(Node):
         return
 
     #~ Callback for when an elevator successfully executes an order
-    def order_executed_callback(self, msg):
+    def orderExecuted_callback(self, msg):
         self.get_logger().warn('Order executed at ID: %d, Floor: %d' %(msg.id, msg.floor))
         if (msg.id != elev.id):
             fsm_onFloorArrival(elev, msg.id, msg.floor)
@@ -174,50 +154,26 @@ class ElevatorNode(Node):
 
         if (msg.button == BTN_CAB):
             fsm_onNewOrder(elev,msg.id,msg.floor,msg.button)
-            self.get_logger().info('New cab order distributed to: %s\n' %(msg.id))
+            self.get_logger().info('New cab order distributed to: %s' %(msg.id))
             return
 
         else:
-#################### ORDER DISTRIBUTER ASSIGNS NEW ORDER #########################
-            min_id          = elev.id   # ID of elevator with the least cost
-            min_duration    = 999       # Time duration of elev with least cost
+            elev_copy   = copy.deepcopy(elev)
+            executor_id = distributor_id(elev_copy, msg) #ID of elevator which will take the order
+            self.get_logger().warn('New hall order distributed to: %s' %(executor_id))
 
-            elev_copy = copy.deepcopy(elev)
-
-            for id in sorted(elev_copy.queue):
-                if (elev_copy.network[id] == OFFLINE):
-                    continue
-                floor       = elev_copy.floor[id]
-                queue       = elev_copy.queue[id]
-                dir         = elev_copy.direction[id]
-                behaviour   = elev_copy.behaviour[id]
-
-                single_elev_copy = LocalElevator(id, floor, behaviour, dir, queue)
-                single_elev_copy.queue[id][msg.floor][msg.button] = 1
-                duration = distributor_timeToIdle(single_elev_copy)
-
-                if (duration < min_duration):
-                    min_id = id
-                    min_duration = duration
-###################################################################################
-
-            self.get_logger().warn('New hall order distributed to: %s\n' %(min_id))
-
-            if (elev.id == min_id):
-                fsm_onNewOrder(elev, min_id, msg.floor,msg.button)
+            if (elev.id == executor_id):
+                fsm_onNewOrder(elev, executor_id, msg.floor,msg.button)
                 orderConfirmedMsg = msg_create_orderConfirmedMessage(elev, msg.floor, msg.button)
                 self.order_confirmed_publisher.publish(orderConfirmedMsg)
-
                 if (elev.behaviour[elev.id] == DOOR_OPEN and elev.floor[elev.id] == msg.floor):
                     orderExecutedMsg = msg_create_orderExecutedMessage(elev)
                     self.order_executed_publisher.publish(orderExecutedMsg)
-
                 statusMsg = msg_create_statusMessage(elev)
                 self.status_publisher.publish(statusMsg)
 
             else:
-                #Add to unacknowledgedOrders
-                timer_orderConfirmedStart(elev, min_id, msg.floor, msg.button)
+                timer_orderConfirmedStart(elev, executor_id, msg.floor, msg.button)
         return
 
 
@@ -226,39 +182,39 @@ class ElevatorNode(Node):
 def main(args=None):
     global elev
     try:
-        Elevator.destroy_node()
+        com.destroy_node()
         rclpy.shutdown()
+        print('Program was not shut down correctly last time.')
     except:
-        print('ORDER NOT PURGED')
         pass
 
-    rclpy.init(args=args)
-    Elevator = ElevatorNode()
-
     fsm_init(elev)
+    rclpy.init(args=args)
+    com = Communication()
+    timer_doorsStart()
     initMsg = msg_create_initMessage(elev, RESTART)
-    Elevator.init_publisher.publish(initMsg)
 
-    heartbeatMsg = msg_create_heartbeatMessage(elev)
-    Elevator.heartbeat_publisher.publish(heartbeatMsg)
+    for i in range(20):
+        com.init_publisher.publish(initMsg)
+        rclpy.spin_once(com, executor=None, timeout_sec=5)
 
-    rclpy.spin_once(Elevator, executor=None, timeout_sec=5)
-    Elevator.get_logger().warn("Init and heartbeat message sent from self!")
-
+    heartbeatMsg    = msg_create_heartbeatMessage(elev)
+    com.heartbeat_publisher.publish(heartbeatMsg)
+    com.get_logger().warn("Init and heartbeat message sent from self!")
     timer_heartbeatStart()
 
     while (rclpy.ok()):
-        rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
+        rclpy.spin_once(com, executor=None, timeout_sec=0)
 
         #~ Check for new button push
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
                 if (events_newButtonPush(elev, floor, btn)):
-                    if (elev.network[elev.id] == OFFLINE and btn == BTN_CAB):
+                    if (elev.network[elev.id] == ONLINE):
+                        newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
+                        com.order_publisher.publish(newOrderMsg)
+                    elif(btn == BTN_CAB):
                         fsm_onNewOrder(elev, elev.id, floor, btn)
-                        continue
-                    newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
-                    Elevator.order_publisher.publish(newOrderMsg)
 
         #~ Check floor sensors
         if (events_onNewFloor(elev)):
@@ -266,39 +222,33 @@ def main(args=None):
             if (elev.behaviour[elev.id] == DOOR_OPEN):
                 orderExecutedMsg  = msg_create_orderExecutedMessage(elev)
                 statusMsg         = msg_create_statusMessage(elev)
-                Elevator.order_executed_publisher.publish(orderExecutedMsg)
-                Elevator.status_publisher.publish(statusMsg)
+                com.order_executed_publisher.publish(orderExecutedMsg)
+                com.status_publisher.publish(statusMsg)
 
         #~ Doors open-timer timeout
         if (timer_doorsTimeout()):
             timer_doorsStop()
-
             fsm_onDoorTimeout(elev)
-
             statusMsg = msg_create_statusMessage(elev)
-            Elevator.status_publisher.publish(statusMsg)
+            com.status_publisher.publish(statusMsg)
 
         #~ Mechanical error-timer timeout
         if (timer_executionTimeout()):
-            Elevator.get_logger().error('Mechanical error!')
+            com.get_logger().error('Mechanical error!')
             timer_executionStop()
-
             elev.network[elev.id] = OFFLINE
             statusMsg  = msg_create_statusMessage(elev)
-            Elevator.status_publisher.publish(statusMsg)
-            rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
-
+            com.status_publisher.publish(statusMsg)
+            rclpy.spin_once(com, executor=None, timeout_sec=0)
             fsm_onMechanicalError(elev)
-
             initMsg    = msg_create_initMessage(elev, RECONNECT)
-            Elevator.init_publisher.publish(initMsg)
-            rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
-
+            com.init_publisher.publish(initMsg)
+            rclpy.spin_once(com, executor=None, timeout_sec=0)
 
         #~ Checking timeouts on the unconfirmed orders
         for start_time in sorted(elev.unacknowledgedOrders):
             if (timer_orderConfirmedTimeout(start_time)):
-                Elevator.get_logger().error('Order Confirmation Timed Out!')
+                com.get_logger().error('Order Confirmation Timed Out!')
                 floor   = elev.unacknowledgedOrders[start_time][1]
                 btn     = elev.unacknowledgedOrders[start_time][2]
                 fsm_onNewOrder(elev, elev.id, floor, btn)
@@ -307,31 +257,32 @@ def main(args=None):
         #~ Send heartbeat
         if (elev.network[elev.id] == ONLINE and timer_heartbeatSendTimeout()):
             heartbeatMsg = msg_create_heartbeatMessage(elev)
-            Elevator.heartbeat_publisher.publish(heartbeatMsg)
+            com.heartbeat_publisher.publish(heartbeatMsg)
             timer_heartbeatRestart()
 
         #~ Heartbeat timeout
         for id in sorted(elev.heartbeat):
             if (timer_heartbeatReceiveTimeout(elev.heartbeat[id]) and elev.network[id] == ONLINE):
-                Elevator.get_logger().error('Heartbeat not received from ID: %d!' %(id))
-                rclpy.spin_once(Elevator, executor=None, timeout_sec=0)
+                com.get_logger().error('Heartbeat not received from ID: %d!' %(id))
+                rclpy.spin_once(com, executor=None, timeout_sec=0)
                 elev.network[id] = OFFLINE
+                if (id == elev.id):
+                    continue
                 for floor in range(N_FLOORS):
                     for btn in range(N_BUTTONS):
                         if (events_republishOrder(elev, id, floor, btn)):
                             newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
-                            Elevator.order_publisher.publish(newOrderMsg)
+                            com.order_publisher.publish(newOrderMsg)
                             elev.queue[id][floor][btn] = 0
 
-        #~~~ Check stop button ~~~#
+        #~ Check stop button
         if (driver.elev_get_stop_signal()):
             driver.elev_set_motor_direction(DIRN_STOP)
             break
 
-    Elevator.get_logger().error('Main loop done, shutting down.')
-    Elevator.destroy_node()
+    com.get_logger().error('Main loop done, shutting down.')
+    com.destroy_node()
     rclpy.shutdown()
-
     return
 
 if __name__ == '__main__':
