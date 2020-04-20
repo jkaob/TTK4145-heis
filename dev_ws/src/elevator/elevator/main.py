@@ -8,7 +8,7 @@ import sys
 import time
 from ctypes import *
 
-#### Add script path for ros compiled files to find them ###
+#~ Add script path for ros compiled files to find them
 install_dir = os.path.join(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(install_dir))
 
@@ -160,7 +160,6 @@ class Communication(Node):
         else:
             elev_copy   = copy.deepcopy(elev)
             executor_id = distributor_id(elev_copy, msg) #ID of elevator which will take the order
-
             self.get_logger().warn('New hall order distributed to: %s' %(executor_id))
 
             if (elev.id == executor_id):
@@ -206,6 +205,7 @@ def main(args=None):
 
     while (rclpy.ok()):
         rclpy.spin_once(com, executor=None, timeout_sec=0)
+
         #~ Check for new button push
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
@@ -228,9 +228,7 @@ def main(args=None):
         #~ Doors open-timer timeout
         if (timer_doorsTimeout()):
             timer_doorsStop()
-
             fsm_onDoorTimeout(elev)
-
             statusMsg = msg_create_statusMessage(elev)
             com.status_publisher.publish(statusMsg)
 
@@ -238,14 +236,11 @@ def main(args=None):
         if (timer_executionTimeout()):
             com.get_logger().error('Mechanical error!')
             timer_executionStop()
-
             elev.network[elev.id] = OFFLINE
             statusMsg  = msg_create_statusMessage(elev)
             com.status_publisher.publish(statusMsg)
             rclpy.spin_once(com, executor=None, timeout_sec=0)
-
             fsm_onMechanicalError(elev)
-
             initMsg    = msg_create_initMessage(elev, RECONNECT)
             com.init_publisher.publish(initMsg)
             rclpy.spin_once(com, executor=None, timeout_sec=0)
