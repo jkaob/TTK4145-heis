@@ -3,13 +3,13 @@ import rclpy
 #~ Message formats
 from ros2_msg.msg import Init
 from ros2_msg.msg import NodeMsg
-from ros2_msg.msg import Status
+from ros2_msg.msg import elevClass
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
 from ros2_msg.msg import OrderConfirmed
 
 #~ Source files
-from status import LocalElevator
+from elevClass import LocalElevator
 from constants import *
 
 

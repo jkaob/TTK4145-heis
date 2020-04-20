@@ -1,8 +1,8 @@
 from ctypes import *
 import os
-import status
 import sys
 
+from elevClass  import *
 from constants  import *
 from timer      import *
 from util       import *

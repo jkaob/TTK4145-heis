@@ -1,4 +1,4 @@
-import status
+import elevClass
 import os
 import sys
 import platform    # For getting the operating system name

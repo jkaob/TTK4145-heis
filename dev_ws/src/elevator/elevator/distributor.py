@@ -1,6 +1,6 @@
 from constants  import *
 from util       import *
-from status     import LocalElevator
+from elevClass    import LocalElevator
 
 def distributor_timeToIdle(elev): #Calculates the time it takes to get to State_IDLE for one single elevator
     duration    = 0

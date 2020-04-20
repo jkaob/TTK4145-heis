@@ -17,7 +17,7 @@ sys.path.append(os.path.abspath(install_dir))
 from rclpy.node   import Node
 from ros2_msg.msg import Init
 from ros2_msg.msg import NodeMsg
-from ros2_msg.msg import Status
+from ros2_msg.msg import elevClass
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
 from ros2_msg.msg import OrderConfirmed
@@ -30,7 +30,7 @@ from messages       import *
 from timer          import *
 from events         import *
 from util           import *
-from status         import LocalElevator
+from elevClass      import LocalElevator
 
 
 #~~~ Include driver ~~~#

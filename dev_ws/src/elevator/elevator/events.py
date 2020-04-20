@@ -1,5 +1,5 @@
 import os
-import status
+import elevClass
 import sys
 from ctypes    import *
 
