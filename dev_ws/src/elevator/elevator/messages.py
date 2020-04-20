@@ -3,13 +3,13 @@ import rclpy
 #~ Message formats
 from ros2_msg.msg import Init
 from ros2_msg.msg import NodeMsg
-from ros2_msg.msg import elevClass
+from ros2_msg.msg import Status
 from ros2_msg.msg import Order
 from ros2_msg.msg import OrderExecuted
 from ros2_msg.msg import OrderConfirmed
 
 #~ Source files
-from elevClass import LocalElevator
+from elevClass import Elevator
 from constants import *
 
 
@@ -87,9 +87,8 @@ def msg_create_nodeMessage(elev, knownID, initmode):
 def msg_create_heartbeatMessage(elev):
         return msg_create_statusMessage(elev)
 
-
 #~ Copies data from message into the elevator
-def msg_update_elev(elev, msg):
+def msg_update_Elevator(elev, msg):
         elev.floor[msg.id]      = msg.floor
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
