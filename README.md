@@ -61,6 +61,16 @@ To build and run the system we have made scripts for this so you don't have to r
 We have made scripts to simulate both packetloss and complete network loss, *packet_loss.sh* and *no_network.sh*, respectively.
 NOTE: They accept ports used by discord to be able to use discord during packet_loss.
 
+#### Simulate full network loss
+```
+. no_network.sh
+```
+#### Simulate 20% packetloss
+```
+. packet_loss.sh
+```
+
+
 If u want to do it yourself without using the scripts follow instruction below.
 
 #### 2.  Manually
