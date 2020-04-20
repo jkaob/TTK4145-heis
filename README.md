@@ -13,7 +13,7 @@ System overview can be found in *design-review/uml*.
 ## Driver module - C to Python
 We use the driver interface provided and interface with it using ctypes.
 A simple example is shown in *example.py*. The library is simply compiled using gcc
-and then imported into the python file.
+and then imported into the python file. (Shoutout to *sindrehan*).
 
 The following line shows how to compile the driver library.
 
