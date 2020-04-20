@@ -2,7 +2,7 @@
 
 ## Our Stack
 #### Language
-The system is written in **Python**, built with **colcon** and the hardware/simulator driver is interpreted with **Ctypes**.
+The system is written in **Python**, built with **colcon** and the hardware/simulator driver is written in C and interpreted with **Ctypes**.
 
 #### Network
 For our network module we use **ROS2** which is a open source library for both Pyhton and C++.
