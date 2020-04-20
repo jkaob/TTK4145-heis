@@ -1,9 +1,18 @@
-# TTK4145-heis
-Elevator project for TTK4145 - Real Time Programming
+# Elevator project for TTK4145 - Real Time Programming
 
-## Driver module
+## Our Stack
+#### Language
+The system is written in **Python**, built with **colcon** and the hardware/simulator driver is interpreted with **Ctypes**.
+
+#### Network
+For our network module we use **ROS2** which is a open source library for both Pyhton and C++.
+
+#### Modules & System overview
+System overview can be found in *design-review/uml*.
+
+## Driver module - C to Python
 We use the driver interface provided and interface with it using ctypes.
-A simple example is shown in example.py. The library is simply compiled using gcc
+A simple example is shown in *example.py*. The library is simply compiled using gcc
 and then imported into the python file.
 
 The following line shows how to compile the driver library.
@@ -26,27 +35,49 @@ sudo apt install libcomedi-dev
 ```
 
 #### Ros Domain
-To talk between ros nodes on different computers you need to set a correct domain id:
+To talk between ros nodes on different computers you need to have the same domain id:
 ```
 export ROS_DOMAIN_ID=42
 ```
 
-## Pakketapssimulering
-#### Finn de rette portene
-ROS/DDS benytter seg av 4 UDP porter som genereses som en fuksjon av ROS_DOMAIN_ID(42 i vårt tilfelle). Mer info om dette finner man her: https://community.rti.com/howto/statically-configure-firewall-let-omg-dds-traffic-through
+## Build and run
+To build and run the system we have made scripts for this so you don't have to retype commands all day long:
 
-Tre av fire porter er fast bestemt og er i vårt tilfelle:
+#### Build
+```
+. build_elevator.sh
+```
+#### Start simulator (optional if your'e not on the Sanntidssal)
+```
+. simulator.sh
+```
+#### Start ROS and elevator program
+```
+. launch_elevator.sh
+```
+
+## Packetloss simulation
+#### 1. Script
+We have made scripts to simulate both packetloss and complete network loss, *packet_loss.sh* and *no_network.sh*, respectively.
+NOTE: They accept ports used by discord to be able to use discord during packet_loss.
+
+If u want to do it yourself without using the scripts follow instruction below.
+
+#### 2.  Manually
+ROS/DDS uses 4 UDP ports which generates by a function of ROS_DOMAIN_ID(we use 42). More info about this can be read here:
+https://community.rti.com/howto/statically-configure-firewall-let-omg-dds-traffic-through
+
+Three out of four port are static, and in our case:
 ##### 17900
 ##### 17912
 ##### 17913
 
-Den siste porten finner man ved å bruke følgende kommando:
+The last port can be found with the following shell command:
 ```
 lsof -i
 ```
-#### Stenge kommunikasjon mellom portene
-Når du har dine fire porter, stenger man enten alle pakker som sendes gjennom de med eksempel:
-
+##### Stenge kommunikasjon mellom portene
+When you have the four ports, you can block them completely (example):
 ```
 sudo iptables -A INPUT -p udp --dport 17900 -j DROP
 sudo iptables -A INPUT -p udp --dport 17912 -j DROP
@@ -54,32 +85,11 @@ sudo iptables -A INPUT -p udp --dport 17913 -j DROP
 sudo iptables -A INPUT -p udp --dport 48904 -j DROP
 
 ```
-For å kun "miste" en bestemt andel(her 20%) av pakkene kan man bruke eksempelvis:
+To only "loose" a certain amount of packages(here 20%) use this instead:
 ```
-sudo iptables -A INPUT -p udp --dport 17900 -j ACCEPT
-sudo iptables -A INPUT -p udp --dport 17912 -j ACCEPT
-sudo iptables -A INPUT -p udp --dport 17913 -j ACCEPT
-sudo iptables -A INPUT -p udp --dport 48904 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 17900 -m statistic --mode random --probability 0.2 -j DROP
+sudo iptables -A INPUT -p udp --dport 17912 -m statistic --mode random --probability 0.2 -j DROP
+sudo iptables -A INPUT -p udp --dport 17913 -m statistic --mode random --probability 0.2 -j DROP
+sudo iptables -A INPUT -p udp --dport 48904 -m statistic --mode random --probability 0.2 -j DROP
 
-sudo iptables -A INPUT -m statistic --mode random --probability 0.2 -j DROP
 ```
-
-## TODO
-#### Offline cab orders
-Når man mister nett skjer følgende:
-- Om man spammer masse knapper, så får den en ny ordre når den reconnecter og kjører ut av banen
-- Får ikke fjernet ros helt, men sånn får det bare bl
-- Den kjører aldri noe form for reconnect
-
-
-
-#### Er dette gjort?:
-Skal vi lage en 'event'modul?
-
-Altså lage en modul som inneholder
-  NewButtonPushed - Som tar for seg:
-     for f in range(N_FLOORS):
-            for b in range(N_BUTTONS):
-                v = fsm.driver.elev_get_button_signal(b, f)
-                if (v and (v != elev.queue[elev.id][f][b])):
-Osv...
