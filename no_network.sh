@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Drop only ros
 #sudo iptables -A INPUT -p udp --dport 17900 -j DROP
 #sudo iptables -A INPUT -p udp --dport 17912 -j DROP
 #sudo iptables -A INPUT -p udp --dport 17913 -j DROP
