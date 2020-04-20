@@ -60,7 +60,7 @@ class ElevatorNode(Node):
         super().__init__('elev_node_'+str(local_id))
 
         #~ Creating subscribers for listening to topics
-        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 3)
+        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 0)
         self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 3)
         self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 0)
         self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 0)
@@ -69,7 +69,7 @@ class ElevatorNode(Node):
         self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,0)
 
         #~ Creating publishers for sending to topics
-        self.init_publisher             = self.create_publisher(Init, 'init', 3)
+        self.init_publisher             = self.create_publisher(Init, 'init', 0)
         self.node_publisher             = self.create_publisher(NodeMsg, 'node', 3)
         self.status_publisher           = self.create_publisher(Status, 'status', 0)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
@@ -83,7 +83,8 @@ class ElevatorNode(Node):
     def heartbeat_callback(self, msg):
         #if (msg.id == elev.id):
         #    return
-        elev.heartbeat[msg.id] = time.time();
+        elev.network[msg.id] = ONLINE
+        elev.heartbeat[msg.id] = time.time()
         msg_update_elev(elev, msg)
         return
 
@@ -202,17 +203,20 @@ def main(args=None):
         pass
 
     rclpy.init(args=args)
-    Elevator = ElevatorNode()
 
     fsm_init(elev)
 
+    Elevator = ElevatorNode()
+    timer_doorsStart()
     initMsg         = msg_create_initMessage(elev, RESTART)
-    Elevator.init_publisher.publish(initMsg)
+    for i in range(20):
+        Elevator.init_publisher.publish(initMsg)
+        rclpy.spin_once(Elevator, executor=None, timeout_sec=5)
+
 
     heartbeatMsg    = msg_create_heartbeatMessage(elev)
     Elevator.heartbeat_publisher.publish(heartbeatMsg)
 
-    rclpy.spin_once(Elevator, executor=None, timeout_sec=5)
     Elevator.get_logger().warn("Init and heartbeat message sent from self!")
 
     timer_heartbeatStart()
@@ -223,11 +227,11 @@ def main(args=None):
         for floor in range(N_FLOORS):
             for btn in range(N_BUTTONS):
                 if (events_newButtonPush(elev, floor, btn)):
-                    if (elev.network[elev.id] == OFFLINE and btn == BTN_CAB):
+                    if (elev.network[elev.id] == ONLINE):
+                        newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
+                        Elevator.order_publisher.publish(newOrderMsg)
+                    elif(btn == BTN_CAB):
                         fsm_onNewOrder(elev, elev.id, floor, btn)
-                        continue
-                    newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
-                    Elevator.order_publisher.publish(newOrderMsg)
 
         #~ Check floor sensors
         if (events_onNewFloor(elev)):

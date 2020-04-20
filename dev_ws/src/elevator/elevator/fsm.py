@@ -80,7 +80,9 @@ def fsm_onFloorArrival(elev, id, floor):
 
         elev.floor[elev.id] = floor
         driver.elev_set_floor_indicator(floor)
+        print("##83")
         if (elev.behaviour[elev.id] == MOVING):
+            print("##84")
             if (util_shouldStop(elev)):
                 driver.elev_set_motor_direction(DIRN_STOP)
                 driver.elev_set_door_open_lamp(1)
