@@ -59,6 +59,7 @@ def msg_create_statusMessage(elev):
         msg.behaviour   = elev.behaviour[elev.id]
         msg.direction   = elev.direction[elev.id]
         msg.network     = elev.network[elev.id]
+        msg.queue       = elev.queue[elev.id]
 
         return msg
 
@@ -93,5 +94,6 @@ def msg_update_Elevator(elev, msg):
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
+        elev.queue[msg.id]    = msg.queue
 
         return

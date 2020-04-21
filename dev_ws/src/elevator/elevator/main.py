@@ -58,18 +58,18 @@ class Communication(Node):
         super().__init__('elev_node_'+str(local_id))
 
         #~ Creating subscribers for listening to topics
-        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 0)
+        self.init_subscriber            = self.create_subscription(Init, 'init', self.init_callback, 10)
         self.node_subscriber            = self.create_subscription(NodeMsg, 'node', self.node_callback, 3)
-        self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 0)
-        self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 0)
+        self.status_subscriber          = self.create_subscription(Status, 'status', self.status_callback, 3)
+        self.order_subscriber           = self.create_subscription(Order, 'orders', self.order_callback, 10)
         self.order_executed_subscriber  = self.create_subscription(OrderExecuted, 'executed_orders', self.orderExecuted_callback, 10)
         self.order_confirmed_subscriber = self.create_subscription(OrderConfirmed, 'confirmed_orders', self.orderConfirmed_callback, 10)
         self.heartbeat_subscriber       = self.create_subscription(Status, 'heartbeat', self.heartbeat_callback,0)
 
         #~ Creating publishers for sending to topics
-        self.init_publisher             = self.create_publisher(Init, 'init', 0)
+        self.init_publisher             = self.create_publisher(Init, 'init', 10)
         self.node_publisher             = self.create_publisher(NodeMsg, 'node', 3)
-        self.status_publisher           = self.create_publisher(Status, 'status', 0)
+        self.status_publisher           = self.create_publisher(Status, 'status', 3)
         self.order_publisher            = self.create_publisher(Order, 'orders', 10)
         self.order_executed_publisher   = self.create_publisher(OrderExecuted, 'executed_orders', 10)
         self.order_confirmed_publisher  = self.create_publisher(OrderConfirmed, 'confirmed_orders', 10)
@@ -81,6 +81,7 @@ class Communication(Node):
     def heartbeat_callback(self, msg):
         elev.network[msg.id] = ONLINE
         elev.heartbeat[msg.id] = time.time()
+        util_setAllLights(elev)
         msg_update_Elevator(elev, msg)
         return
 
@@ -188,9 +189,10 @@ def main(args=None):
     except:
         pass
 
-    fsm_init(elev)
     rclpy.init(args=args)
     com = Communication()
+    fsm_init(elev)
+    time.sleep(3)
     timer_doorsStart()
     initMsg = msg_create_initMessage(elev, RESTART)
 
