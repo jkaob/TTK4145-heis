@@ -68,8 +68,6 @@ def fsm_onFloorArrival(elev, id, floor):
             for btn in range(N_BUTTONS):
                 elev.queue[id][floor][btn] = 0
             util_setAllLights(elev)
-            print(elev.queue[id])
-            print(elev.queue[111])
             return
 
         timer_executionStop() # no mechanical error

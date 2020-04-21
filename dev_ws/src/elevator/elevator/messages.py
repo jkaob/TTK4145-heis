@@ -100,9 +100,6 @@ def msg_update_Elevator(elev, msg):
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
 
-        for floor in range(N_FLOORS):
-            for btn in range(N_BUTTONS):
-                #Mapping 1D -> 2D array
-                elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
+        
 
         return

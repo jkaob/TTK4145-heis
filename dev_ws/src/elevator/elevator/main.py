@@ -81,7 +81,6 @@ class Communication(Node):
     def heartbeat_callback(self, msg):
         elev.network[msg.id] = ONLINE
         elev.heartbeat[msg.id] = time.time()
-        util_setAllLights(elev)
         msg_update_Elevator(elev, msg)
         return
 
@@ -121,6 +120,11 @@ class Communication(Node):
             return
 
         msg_update_Elevator(elev, msg)
+        for floor in range(N_FLOORS):
+            for btn in range(N_BUTTONS):
+                #Mapping 1D -> 2D array
+                elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
+
         if (msg.network == OFFLINE):
             for floor in range(N_FLOORS):
                 for btn in range(N_BUTTONS):
@@ -128,7 +132,7 @@ class Communication(Node):
                         newOrderMsg = msg_create_newOrderMessage(elev, floor, btn)
                         self.order_publisher.publish(newOrderMsg)
                         elev.queue[msg.id][floor][btn] = 0
-
+        util_setAllLights(elev)
         return
 
     #~ Callback for when an elevator confirms an order
@@ -192,7 +196,7 @@ def main(args=None):
     rclpy.init(args=args)
     com = Communication()
     fsm_init(elev)
-    time.sleep(3)
+    time.sleep(5)
     timer_doorsStart()
     initMsg = msg_create_initMessage(elev, RESTART)
 
