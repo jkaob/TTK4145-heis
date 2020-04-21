@@ -59,7 +59,12 @@ def msg_create_statusMessage(elev):
         msg.behaviour   = elev.behaviour[elev.id]
         msg.direction   = elev.direction[elev.id]
         msg.network     = elev.network[elev.id]
-        msg.queue       = elev.queue[elev.id]
+        msg.queue       = [0 for i in range(N_BUTTONS * N_FLOORS)]
+
+
+        for floor in range(N_FLOORS):
+            for btn in range(N_BUTTONS):
+                msg.queue[floor*N_BUTTONS + btn] = int(elev.queue[elev.id][floor][btn]) #Mapping 2D -> 1D array
 
         return msg
 
@@ -94,6 +99,10 @@ def msg_update_Elevator(elev, msg):
         elev.behaviour[msg.id]  = msg.behaviour
         elev.direction[msg.id]  = msg.direction
         elev.network[msg.id]    = msg.network
-        elev.queue[msg.id]    = msg.queue
+
+        for floor in range(N_FLOORS):
+            for btn in range(N_BUTTONS):
+                #Mapping 1D -> 2D array
+                elev.queue[msg.id][floor][btn] = msg.queue[floor*N_BUTTONS + btn]
 
         return
