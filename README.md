@@ -1,5 +1,5 @@
 # Elevator project for TTK4145 - Real Time Programming
-
+By Lars Musæus, Knut Vågnes Eriksen and Jakob Eide Grepperud.
 ## Our Stack
 #### Language
 The system is written in **Python**, built with **colcon** and the hardware/simulator driver is written in C and interpreted with **Ctypes**.
